@@ -1,0 +1,31 @@
+---
+import { LOCALES, switchLocale, type Locale } from '../lib/i18n';
+
+interface Props {
+  current: Locale;
+  pathname: string;
+}
+
+const { current, pathname } = Astro.props;
+const LABEL: Record<Locale, string> = { pt: 'Português', en: 'English' };
+---
+
+<div class="toggle">
+  {LOCALES.map((locale) => (
+    locale === current
+      ? <span aria-current="true" lang={locale}>{LABEL[locale]}</span>
+      : <a href={switchLocale(pathname, locale)} lang={locale}>{LABEL[locale]}</a>
+  ))}
+</div>
+
+<style>
+  .toggle {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  span[aria-current] { color: var(--accent); }
+  a { color: var(--muted); text-decoration: none; }
+  a:hover { color: var(--fg); }
+</style>

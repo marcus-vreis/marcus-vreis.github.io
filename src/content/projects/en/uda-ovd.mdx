@@ -1,0 +1,25 @@
+---
+title: Domain adaptation for detection
+persona: The Fog
+tagline: Unsupervised domain adaptation for open-vocabulary object detection.
+accent: '#8FA6B8'
+accentLight: '#547085'
+order: 3
+year: '2026—'
+stack: ['Grounding DINO', 'LoRA', 'Cityscapes']
+links: []
+---
+
+Master's research, in progress. Unsupervised domain adaptation for
+open-vocabulary object detection: a source-free, lightweight adaptation of the
+text side of a frozen open-vocabulary detector (Grounding DINO), through
+prompt tuning and LoRA. It is also an empirical study of when VLM anchors
+actually help pseudo-labelling under domain shift.
+
+The original idea — using CLIP as a filter for pseudo-labels — did not work,
+for structural reasons: a recall ceiling, and the anchor's score being
+correlated with the teacher's confidence under corruption. That negative
+result became the motivation and the analysis, rather than being buried.
+
+Benchmarks are Cityscapes and Foggy Cityscapes. Everything is designed to run
+on a single consumer GPU.

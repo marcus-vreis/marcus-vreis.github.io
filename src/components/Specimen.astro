@@ -1,0 +1,40 @@
+---
+interface Props {
+  /** Texto alternativo — descreve a imagem que estiver no slot. */
+  alt: string;
+  /** Legenda curta exibida abaixo. */
+  caption: string;
+}
+
+const { alt, caption } = Astro.props;
+
+// Trocar por '/specimen/marcus.jpg' quando a fotografia existir.
+// Nenhum outro arquivo precisa mudar.
+const SPECIMEN_SRC = '/specimen/placeholder.svg';
+---
+
+<figure class="specimen">
+  <img src={SPECIMEN_SRC} alt={alt} width="400" height="500" />
+  <figcaption class="tabular">{caption}</figcaption>
+</figure>
+
+<style>
+  .specimen { margin: 0; max-width: 20rem; }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border: 1px solid var(--rule);
+  }
+
+  figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+import '@fontsource/instrument-serif/400.css';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '../styles/global.css';
+import { paletteToCss } from '../lib/tokens';
+import type { Locale } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+}
+
+const { title, description, locale } = Astro.props;
+---
+
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {/* Marca provisória: a lente do banco óptico, no âmbar do site. Está aqui
+        porque sem nenhum ícone o navegador pede /favicon.ico e leva 404. É um
+        placeholder como o bonequinho do espécime — trocar o arquivo basta. */}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* O <link rel="canonical"> e os hreflang alternates para pt/en devem
+        voltar aqui assim que um domínio real for definido em `site` no
+        astro.config.mjs — apontar para https://example.com seria pior do
+        que não emitir a tag. */}
+    <style is:inline set:html={`
+      :root { ${paletteToCss('dark')} }
+      @media (prefers-color-scheme: light) { :root { ${paletteToCss('light')} } }
+      :root[data-mode="dark"] { ${paletteToCss('dark')} color-scheme: dark; }
+      :root[data-mode="light"] { ${paletteToCss('light')} color-scheme: light; }
+    `} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

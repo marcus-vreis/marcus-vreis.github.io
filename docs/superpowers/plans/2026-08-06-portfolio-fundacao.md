@@ -6,7 +6,15 @@
 
 **Architecture:** Astro 5 estático. O conteúdo vive em Content Collections MDX, um arquivo por projeto e idioma, com paridade PT/EN imposta no build. As rotas são derivadas de um par de funções puras (`parsePath`/`buildPath`) para que o seletor de idioma preserve a rota atual sem lógica espalhada. Os tokens de cor são definidos em TypeScript como fonte única de verdade, emitidos como custom properties CSS pelo layout base, e cobertos por um teste de contraste WCAG. Nenhum componente contém texto de exibição.
 
-**Tech Stack:** Astro 5, MDX, TypeScript, Vitest (unidade), Playwright (e2e), Fontsource (fontes self-hosted), Vercel (estático, sem adapter).
+**Tech Stack:** Astro 7, MDX, TypeScript, Vitest (unidade), Playwright (e2e), Fontsource (fontes self-hosted), Vercel (estático, sem adapter).
+
+**Nota de versão (descoberta na Task 1, 2026-08-06):** o plano foi escrito supondo
+Astro 5; `npm create astro@latest` instala **Astro 7.2.0**. Duas consequências já
+corrigidas no texto abaixo: `z` deixou de ser exportado por `astro:content`
+(depreciado no Astro 6, agora vem de `astro/zod`), e o `glob()` passou a gerar
+`id` como slug kebab-case, então a Task 5 fixa o formato com `generateId`. Se
+alguma task adiante topar com outra divergência de API, parar e reportar em vez
+de improvisar.
 
 **Pré-requisitos:** Node 22.15.0 e npm 11.16.0 já verificados na máquina. Repositório em `C:\Users\marcu\Downloads\Portfolio`, HEAD em `47e2930`, contendo apenas `docs/`.
 
@@ -596,11 +604,18 @@ git commit -m "feat: checagem de paridade PT/EN"
 Criar `src/content.config.ts`:
 
 ```ts
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.mdx', base: './src/content/projects' }),
+  loader: glob({
+    pattern: '**/*.mdx',
+    base: './src/content/projects',
+    // Sem isto o id vira um slug kebab-case gerado por slugger. O resto do
+    // código depende do formato `<locale>/<slug>`, então ele é fixado aqui.
+    generateId: ({ entry }) => entry.replace(/\.mdx$/, ''),
+  }),
   schema: z.object({
     /** Nome do projeto como aparece no título da estação. */
     title: z.string(),
@@ -1849,6 +1864,46 @@ Depois, importar o repositório em vercel.com. Quando o domínio existir, atuali
 - [ ] Nenhum projeto da Pix Force aparece em qualquer arquivo de conteúdo
 
 ---
+
+## Registro de execução (2026-08-06)
+
+O plano foi executado por subagentes na branch `feat/fundacao-bilingue`. Estado
+final: **95 testes de unidade**, **5 e2e**, **22 páginas**, `astro check` limpo,
+Lighthouse **100 / 100 / 100**.
+
+Três coisas fugiram do que estava escrito e ficam registradas porque a lição
+vale para os Planos 2 e 3:
+
+**Astro 7, não 5.** `npm create astro@latest` instala 7.2.0. `z` saiu de
+`astro:content` e o `glob()` passou a gerar `id` como slug kebab-case. O segundo
+era perigoso de um jeito específico: se o `id` deixasse de ser `<locale>/<slug>`,
+todos os filtros retornariam vazio, `assertParity([], [])` passaria, e o build
+sairia com sucesso publicando um site vazio. O formato foi fixado com
+`generateId` e verificado empiricamente, e `assertParity` agora falha alto em
+coleção vazia.
+
+**Task 14 — acentos por projeto (não estava no plano).** O teste de contraste da
+Task 3 cobria só a paleta base. Um Lighthouse na Task 13 revelou que os dez
+acentos por projeto tinham sido escolhidos contra o fundo escuro apenas: nove
+reprovavam em AA no modo claro e o `vampireai` reprovava no escuro, que é o modo
+padrão. Cada projeto ganhou `accentLight`, emitido via `light-dark()`, e um teste
+que lê os MDX do disco cobre os vinte arquivos — então acento novo não entra sem
+passar. A spec já exigia isso em §5.1 e §8; foi o plano que agendou a verificação
+tarde demais. **Lição para o Plano 3: escolher acento é escolher um par.**
+
+**Task 15 — achados da revisão final.** Os que importaram: o `<link
+rel="canonical">` anunciava `example.com` nas 22 páginas; a seção "Sobre" não
+tinha os links de contato que a §7 da spec exige; o rótulo do trilho sumia da
+árvore de acessibilidade abaixo de 40rem; as páginas de projeto não tinham
+landmark `main`; e o CI disparava em `main` num repositório cuja branch base é
+`master`. A lógica de `id` que estava repetida quatro vezes virou
+`src/lib/projects.ts`.
+
+Não feito de propósito: **publicar**. Criar o repositório no GitHub e ligar na
+Vercel é decisão do dono. A branch não foi empurrada.
+
+Pendência conhecida: a URL do LinkedIn em `src/lib/ui-strings.ts` é uma
+reconstrução plausível, não verificada — conferir antes de publicar.
 
 ## Próximos planos
 

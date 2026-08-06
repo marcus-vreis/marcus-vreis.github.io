@@ -1,0 +1,92 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Rail from '../../components/Rail.astro';
+import Station from '../../components/Station.astro';
+import Specimen from '../../components/Specimen.astro';
+import LocaleToggle from '../../components/LocaleToggle.astro';
+import { assertParity } from '../../lib/parity';
+import { buildPath } from '../../lib/i18n';
+import { UI } from '../../lib/ui-strings';
+import { entriesFor, slugOf } from '../../lib/projects';
+
+const all = await getCollection('projects');
+
+// Quebra o build se faltar tradução dos dois lados.
+assertParity(
+  entriesFor(all, 'pt').map((e) => slugOf(e.id)),
+  entriesFor(all, 'en').map((e) => slugOf(e.id)),
+);
+
+const projects = entriesFor(all, 'en');
+
+const t = UI.en;
+const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.title }));
+---
+
+<Base title={t.siteTitle} description={t.siteDescription} locale="en">
+  <Rail stops={stops} navLabel={t.navLabel} />
+
+  <header>
+    <LocaleToggle current="en" pathname={Astro.url.pathname} />
+    <Specimen alt={t.specimenAlt} caption={t.specimenCaption} />
+    <h1>{t.thesis}</h1>
+    <p>{t.intro}</p>
+  </header>
+
+  <main>
+    {projects.map((p) => (
+      <Station
+        slug={slugOf(p.id)}
+        title={p.data.title}
+        persona={p.data.persona}
+        tagline={p.data.tagline}
+        accent={p.data.accent}
+        accentLight={p.data.accentLight}
+        year={p.data.year}
+        stack={p.data.stack}
+        href={buildPath({ kind: 'project', slug: slugOf(p.id) }, 'en')}
+        yearLabel={t.yearLabel}
+        stackLabel={t.stackLabel}
+        readLabel={t.readLabel}
+      />
+    ))}
+
+    <section id="sobre" aria-labelledby="sobre-title">
+      <h2 id="sobre-title">{t.aboutHeading}</h2>
+      {t.aboutBody.map((paragraph) => <p>{paragraph}</p>)}
+      <h3>{t.contactHeading}</h3>
+      <ul class="contact">
+        {t.contact.map((c) => <li><a href={c.href}>{c.label}</a></li>)}
+      </ul>
+    </section>
+  </main>
+</Base>
+
+<style>
+  header, #sobre {
+    max-width: 46rem;
+    margin-inline: auto;
+    padding: 4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  h1 { font-size: clamp(3rem, 2rem + 6vw, 7rem); }
+  #sobre { border-top: 1px solid var(--rule); }
+  #sobre p { color: var(--muted); max-width: 36rem; }
+
+  .contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contact a {
+    border-bottom: 1px solid var(--accent);
+    text-decoration: none;
+  }
+</style>
