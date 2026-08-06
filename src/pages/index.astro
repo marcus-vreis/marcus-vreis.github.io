@@ -1,17 +1,76 @@
 ---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Rail from '../components/Rail.astro';
+import Station from '../components/Station.astro';
+import Specimen from '../components/Specimen.astro';
+import LocaleToggle from '../components/LocaleToggle.astro';
+import { assertParity } from '../lib/parity';
+import { buildPath } from '../lib/i18n';
+import { UI } from '../lib/ui-strings';
 
+const all = await getCollection('projects');
+const slugOf = (id: string) => id.split('/')[1];
+
+// Quebra o build se faltar tradução dos dois lados.
+assertParity(
+  all.filter((e) => e.id.startsWith('pt/')).map((e) => slugOf(e.id)),
+  all.filter((e) => e.id.startsWith('en/')).map((e) => slugOf(e.id)),
+);
+
+const projects = all
+  .filter((e) => e.id.startsWith('pt/'))
+  .sort((a, b) => a.data.order - b.data.order);
+
+const t = UI.pt;
+const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.title }));
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title={t.siteTitle} description={t.siteDescription} locale="pt">
+  <Rail stops={stops} navLabel={t.navLabel} />
+
+  <header>
+    <LocaleToggle current="pt" pathname={Astro.url.pathname} />
+    <Specimen alt={t.specimenAlt} caption={t.specimenCaption} />
+    <h1>{t.thesis}</h1>
+    <p>{t.intro}</p>
+  </header>
+
+  <main>
+    {projects.map((p) => (
+      <Station
+        slug={slugOf(p.id)}
+        title={p.data.title}
+        persona={p.data.persona}
+        tagline={p.data.tagline}
+        accent={p.data.accent}
+        year={p.data.year}
+        stack={p.data.stack}
+        href={buildPath({ kind: 'project', slug: slugOf(p.id) }, 'pt')}
+        yearLabel={t.yearLabel}
+        stackLabel={t.stackLabel}
+        readLabel={t.readLabel}
+      />
+    ))}
+  </main>
+
+  <footer id="sobre">
+    <h2>{t.aboutHeading}</h2>
+    {t.aboutBody.map((paragraph) => <p>{paragraph}</p>)}
+  </footer>
+</Base>
+
+<style>
+  header, footer {
+    max-width: 46rem;
+    margin-inline: auto;
+    padding: 4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  h1 { font-size: clamp(3rem, 2rem + 6vw, 7rem); }
+  footer { border-top: 1px solid var(--rule); }
+  footer p { color: var(--muted); max-width: 36rem; }
+</style>
