@@ -40,6 +40,20 @@ function readAccents(filePath: string): Accents {
   return { accent: extract('accent'), accentLight: extract('accentLight') };
 }
 
+/** Extrai `order` do frontmatter YAML de um MDX (linha simples `order: N`). */
+function readOrder(filePath: string): number {
+  const raw = readFileSync(filePath, 'utf-8');
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+  if (!frontmatter) {
+    throw new Error(`Frontmatter não encontrado em ${filePath}`);
+  }
+  const line = /^order:\s*(\d+)\s*$/m.exec(frontmatter[1]);
+  if (!line) {
+    throw new Error(`Campo "order" ausente ou mal formatado em ${filePath}`);
+  }
+  return Number(line[1]);
+}
+
 function listSlugs(locale: Locale): string[] {
   return readdirSync(join(PROJECTS_DIR, locale))
     .filter((name) => name.endsWith('.mdx'))
@@ -82,6 +96,36 @@ describe('acentos por projeto atingem AA nos dois modos', () => {
         en,
         `${slug}: en/${slug}.mdx (${JSON.stringify(en)}) diverge de pt/${slug}.mdx (${JSON.stringify(pt)})`,
       ).toEqual(pt);
+    });
+
+    it(`${slug}: PT e EN declaram o mesmo order`, () => {
+      const ptPath = join(PROJECTS_DIR, 'pt', `${slug}.mdx`);
+      const enPath = join(PROJECTS_DIR, 'en', `${slug}.mdx`);
+      const ptOrder = readOrder(ptPath);
+      const enOrder = readOrder(enPath);
+      expect(
+        enOrder,
+        `${slug}: en/${slug}.mdx tem order ${enOrder}, mas pt/${slug}.mdx tem order ${ptOrder}`,
+      ).toBe(ptOrder);
+    });
+  }
+
+  for (const locale of LOCALES) {
+    it(`${locale}: os dez valores de order são exatamente 1..10, sem duplicatas`, () => {
+      const slugs = listSlugs(locale);
+      const entries = slugs.map((slug) => ({
+        slug,
+        order: readOrder(join(PROJECTS_DIR, locale, `${slug}.mdx`)),
+      }));
+      const orders = entries.map((e) => e.order).sort((a, b) => a - b);
+      const expected = Array.from({ length: entries.length }, (_, i) => i + 1);
+      const describeOrders = entries
+        .map((e) => `${locale}/${e.slug}.mdx=${e.order}`)
+        .join(', ');
+      expect(
+        orders,
+        `${locale}: valores de order não formam 1..${entries.length} sem duplicatas — ${describeOrders}`,
+      ).toEqual(expected);
     });
   }
 });
