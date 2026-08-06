@@ -25,8 +25,8 @@ const { title, description, locale } = Astro.props;
     <style is:inline set:html={`
       :root { ${paletteToCss('dark')} }
       @media (prefers-color-scheme: light) { :root { ${paletteToCss('light')} } }
-      :root[data-mode="dark"] { ${paletteToCss('dark')} }
-      :root[data-mode="light"] { ${paletteToCss('light')} }
+      :root[data-mode="dark"] { ${paletteToCss('dark')} color-scheme: dark; }
+      :root[data-mode="light"] { ${paletteToCss('light')} color-scheme: light; }
     `} />
   </head>
   <body>

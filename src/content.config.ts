@@ -17,8 +17,11 @@ const projects = defineCollection({
     persona: z.string(),
     /** Uma linha que resume o projeto. */
     tagline: z.string(),
-    /** Cor de acento da estação, hex de 6 dígitos. */
+    /** Cor de acento da estação no modo escuro, hex de 6 dígitos. */
     accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+    /** Acento no modo claro. Separado porque uma cor que passa AA sobre
+     *  grafite quase nunca passa sobre papel. */
+    accentLight: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
     /** Posição no trilho, crescente. */
     order: z.number().int().positive(),
     /** Ano ou intervalo, exibido como dado. */

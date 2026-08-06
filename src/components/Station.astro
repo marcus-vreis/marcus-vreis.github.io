@@ -5,6 +5,7 @@ interface Props {
   persona: string;
   tagline: string;
   accent: string;
+  accentLight: string;
   year: string;
   stack: string[];
   href: string;
@@ -15,12 +16,12 @@ interface Props {
 }
 
 const {
-  slug, title, persona, tagline, accent, year, stack, href,
+  slug, title, persona, tagline, accent, accentLight, year, stack, href,
   yearLabel, stackLabel, readLabel,
 } = Astro.props;
 ---
 
-<section id={slug} aria-labelledby={`${slug}-title`} style={`--accent: ${accent}`}>
+<section id={slug} aria-labelledby={`${slug}-title`} style={`--accent: light-dark(${accentLight}, ${accent})`}>
   <p class="persona tabular">{persona}</p>
   <h2 id={`${slug}-title`}>{title}</h2>
   <p class="tagline">{tagline}</p>

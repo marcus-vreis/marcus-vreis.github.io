@@ -25,7 +25,7 @@ const d = entry.data;
   description={d.tagline}
   locale="en"
 >
-  <article style={`--accent: ${d.accent}`}>
+  <article style={`--accent: light-dark(${d.accentLight}, ${d.accent})`}>
     <LocaleToggle current="en" pathname={Astro.url.pathname} />
     <p class="persona tabular">{d.persona}</p>
     <h1>{d.title}</h1>

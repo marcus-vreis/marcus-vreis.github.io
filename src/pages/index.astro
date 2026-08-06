@@ -44,6 +44,7 @@ const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.title }))
         persona={p.data.persona}
         tagline={p.data.tagline}
         accent={p.data.accent}
+        accentLight={p.data.accentLight}
         year={p.data.year}
         stack={p.data.stack}
         href={buildPath({ kind: 'project', slug: slugOf(p.id) }, 'pt')}
