@@ -3,15 +3,14 @@ import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import LocaleToggle from '../../components/LocaleToggle.astro';
 import { UI } from '../../lib/ui-strings';
+import { entriesFor, slugOf } from '../../lib/projects';
 
 export async function getStaticPaths() {
   const entries = await getCollection('projects');
-  return entries
-    .filter((entry) => entry.id.startsWith('pt/'))
-    .map((entry) => ({
-      params: { slug: entry.id.split('/')[1] },
-      props: { entry },
-    }));
+  return entriesFor(entries, 'pt').map((entry) => ({
+    params: { slug: slugOf(entry.id) },
+    props: { entry },
+  }));
 }
 
 const { entry } = Astro.props;

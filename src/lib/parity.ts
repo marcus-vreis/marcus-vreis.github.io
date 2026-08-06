@@ -20,6 +20,12 @@ export function findParityErrors(ptSlugs: string[], enSlugs: string[]): string[]
 
 /** Lança se houver divergência. Chamado no build, a partir das páginas home. */
 export function assertParity(ptSlugs: string[], enSlugs: string[]): void {
+  if (ptSlugs.length === 0 || enSlugs.length === 0) {
+    throw new Error(
+      'Coleção de projetos vazia — o formato de `entry.id` provavelmente mudou. ' +
+        'Esperado `<locale>/<slug>`; ver generateId em src/content.config.ts.',
+    );
+  }
   const errors = findParityErrors(ptSlugs, enSlugs);
   if (errors.length > 0) {
     throw new Error(`Paridade PT/EN quebrada:\n  ${errors.join('\n  ')}`);

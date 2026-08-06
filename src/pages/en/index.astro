@@ -8,19 +8,17 @@ import LocaleToggle from '../../components/LocaleToggle.astro';
 import { assertParity } from '../../lib/parity';
 import { buildPath } from '../../lib/i18n';
 import { UI } from '../../lib/ui-strings';
+import { entriesFor, slugOf } from '../../lib/projects';
 
 const all = await getCollection('projects');
-const slugOf = (id: string) => id.split('/')[1];
 
 // Quebra o build se faltar tradução dos dois lados.
 assertParity(
-  all.filter((e) => e.id.startsWith('pt/')).map((e) => slugOf(e.id)),
-  all.filter((e) => e.id.startsWith('en/')).map((e) => slugOf(e.id)),
+  entriesFor(all, 'pt').map((e) => slugOf(e.id)),
+  entriesFor(all, 'en').map((e) => slugOf(e.id)),
 );
 
-const projects = all
-  .filter((e) => e.id.startsWith('en/'))
-  .sort((a, b) => a.data.order - b.data.order);
+const projects = entriesFor(all, 'en');
 
 const t = UI.en;
 const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.title }));

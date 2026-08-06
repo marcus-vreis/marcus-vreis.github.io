@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findParityErrors } from '../../src/lib/parity';
+import { assertParity, findParityErrors } from '../../src/lib/parity';
 
 describe('findParityErrors', () => {
   it('não acusa nada quando os dois idiomas batem', () => {
@@ -27,5 +27,15 @@ describe('findParityErrors', () => {
       'Falta a versão EN de: b',
       'Falta a versão PT de: z',
     ]);
+  });
+});
+
+describe('assertParity', () => {
+  it('lança quando as duas coleções estão vazias', () => {
+    expect(() => assertParity([], [])).toThrow('Coleção de projetos vazia');
+  });
+
+  it('não lança para um par normal com paridade', () => {
+    expect(() => assertParity(['a', 'b'], ['a', 'b'])).not.toThrow();
   });
 });
