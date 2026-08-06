@@ -1,0 +1,80 @@
+---
+interface Props {
+  slug: string;
+  title: string;
+  persona: string;
+  tagline: string;
+  accent: string;
+  year: string;
+  stack: string[];
+  href: string;
+  /** Rótulos vêm do idioma da página — o componente é compartilhado. */
+  yearLabel: string;
+  stackLabel: string;
+  readLabel: string;
+}
+
+const {
+  slug, title, persona, tagline, accent, year, stack, href,
+  yearLabel, stackLabel, readLabel,
+} = Astro.props;
+---
+
+<section id={slug} aria-labelledby={`${slug}-title`} style={`--accent: ${accent}`}>
+  <p class="persona tabular">{persona}</p>
+  <h2 id={`${slug}-title`}>{title}</h2>
+  <p class="tagline">{tagline}</p>
+
+  <dl class="meta tabular">
+    <dt>{yearLabel}</dt><dd>{year}</dd>
+    <dt>{stackLabel}</dt><dd>{stack.join(' · ')}</dd>
+  </dl>
+
+  <slot />
+
+  <a class="read" href={href}>{readLabel}</a>
+</section>
+
+<style>
+  section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    padding: 4rem 1.5rem;
+    max-width: 46rem;
+    margin-inline: auto;
+    border-top: 1px solid var(--rule);
+  }
+
+  .persona {
+    color: var(--accent);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  h2 { font-size: clamp(2.5rem, 1.5rem + 4vw, 5rem); }
+
+  .tagline { color: var(--muted); max-width: 34rem; }
+
+  .meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1.5rem;
+    font-size: 0.8125rem;
+    margin: 0;
+  }
+
+  .meta dt { color: var(--muted); }
+  .meta dd { margin: 0; }
+
+  .read {
+    align-self: start;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--accent);
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+</style>
