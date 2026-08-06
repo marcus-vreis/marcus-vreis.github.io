@@ -6,7 +6,15 @@
 
 **Architecture:** Astro 5 estático. O conteúdo vive em Content Collections MDX, um arquivo por projeto e idioma, com paridade PT/EN imposta no build. As rotas são derivadas de um par de funções puras (`parsePath`/`buildPath`) para que o seletor de idioma preserve a rota atual sem lógica espalhada. Os tokens de cor são definidos em TypeScript como fonte única de verdade, emitidos como custom properties CSS pelo layout base, e cobertos por um teste de contraste WCAG. Nenhum componente contém texto de exibição.
 
-**Tech Stack:** Astro 5, MDX, TypeScript, Vitest (unidade), Playwright (e2e), Fontsource (fontes self-hosted), Vercel (estático, sem adapter).
+**Tech Stack:** Astro 7, MDX, TypeScript, Vitest (unidade), Playwright (e2e), Fontsource (fontes self-hosted), Vercel (estático, sem adapter).
+
+**Nota de versão (descoberta na Task 1, 2026-08-06):** o plano foi escrito supondo
+Astro 5; `npm create astro@latest` instala **Astro 7.2.0**. Duas consequências já
+corrigidas no texto abaixo: `z` deixou de ser exportado por `astro:content`
+(depreciado no Astro 6, agora vem de `astro/zod`), e o `glob()` passou a gerar
+`id` como slug kebab-case, então a Task 5 fixa o formato com `generateId`. Se
+alguma task adiante topar com outra divergência de API, parar e reportar em vez
+de improvisar.
 
 **Pré-requisitos:** Node 22.15.0 e npm 11.16.0 já verificados na máquina. Repositório em `C:\Users\marcu\Downloads\Portfolio`, HEAD em `47e2930`, contendo apenas `docs/`.
 
@@ -596,11 +604,18 @@ git commit -m "feat: checagem de paridade PT/EN"
 Criar `src/content.config.ts`:
 
 ```ts
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.mdx', base: './src/content/projects' }),
+  loader: glob({
+    pattern: '**/*.mdx',
+    base: './src/content/projects',
+    // Sem isto o id vira um slug kebab-case gerado por slugger. O resto do
+    // código depende do formato `<locale>/<slug>`, então ele é fixado aqui.
+    generateId: ({ entry }) => entry.replace(/\.mdx$/, ''),
+  }),
   schema: z.object({
     /** Nome do projeto como aparece no título da estação. */
     title: z.string(),
