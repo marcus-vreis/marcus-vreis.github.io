@@ -1865,6 +1865,46 @@ Depois, importar o repositório em vercel.com. Quando o domínio existir, atuali
 
 ---
 
+## Registro de execução (2026-08-06)
+
+O plano foi executado por subagentes na branch `feat/fundacao-bilingue`. Estado
+final: **95 testes de unidade**, **5 e2e**, **22 páginas**, `astro check` limpo,
+Lighthouse **100 / 100 / 100**.
+
+Três coisas fugiram do que estava escrito e ficam registradas porque a lição
+vale para os Planos 2 e 3:
+
+**Astro 7, não 5.** `npm create astro@latest` instala 7.2.0. `z` saiu de
+`astro:content` e o `glob()` passou a gerar `id` como slug kebab-case. O segundo
+era perigoso de um jeito específico: se o `id` deixasse de ser `<locale>/<slug>`,
+todos os filtros retornariam vazio, `assertParity([], [])` passaria, e o build
+sairia com sucesso publicando um site vazio. O formato foi fixado com
+`generateId` e verificado empiricamente, e `assertParity` agora falha alto em
+coleção vazia.
+
+**Task 14 — acentos por projeto (não estava no plano).** O teste de contraste da
+Task 3 cobria só a paleta base. Um Lighthouse na Task 13 revelou que os dez
+acentos por projeto tinham sido escolhidos contra o fundo escuro apenas: nove
+reprovavam em AA no modo claro e o `vampireai` reprovava no escuro, que é o modo
+padrão. Cada projeto ganhou `accentLight`, emitido via `light-dark()`, e um teste
+que lê os MDX do disco cobre os vinte arquivos — então acento novo não entra sem
+passar. A spec já exigia isso em §5.1 e §8; foi o plano que agendou a verificação
+tarde demais. **Lição para o Plano 3: escolher acento é escolher um par.**
+
+**Task 15 — achados da revisão final.** Os que importaram: o `<link
+rel="canonical">` anunciava `example.com` nas 22 páginas; a seção "Sobre" não
+tinha os links de contato que a §7 da spec exige; o rótulo do trilho sumia da
+árvore de acessibilidade abaixo de 40rem; as páginas de projeto não tinham
+landmark `main`; e o CI disparava em `main` num repositório cuja branch base é
+`master`. A lógica de `id` que estava repetida quatro vezes virou
+`src/lib/projects.ts`.
+
+Não feito de propósito: **publicar**. Criar o repositório no GitHub e ligar na
+Vercel é decisão do dono. A branch não foi empurrada.
+
+Pendência conhecida: a URL do LinkedIn em `src/lib/ui-strings.ts` é uma
+reconstrução plausível, não verificada — conferir antes de publicar.
+
 ## Próximos planos
 
 **Plano 2 — Motor WebGL e posters.** `lib/gl/renderer.ts` (contexto, quad em tela
