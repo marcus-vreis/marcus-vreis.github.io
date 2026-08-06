@@ -1,0 +1,20 @@
+---
+title: AirWatch
+persona: The Network
+tagline: Distributed collection, aggregation and visualisation of air-quality data.
+accent: '#4EC9E0'
+order: 4
+year: '2026'
+stack: ['TypeScript', 'Docker', 'WebSocket', 'REST']
+repo: 'https://github.com/marcus-vreis/AirWatch'
+links: []
+---
+
+A distributed system for collecting, aggregating and visualising air-quality
+data from simulated sensors. Multiple collector nodes batch their readings
+and send them to a central aggregator, which is consistent and tolerant of
+duplicates.
+
+Results are exposed live over REST and WebSocket, and drawn into a dashboard.
+The whole system runs under Docker Compose. Built for a distributed-systems
+course.

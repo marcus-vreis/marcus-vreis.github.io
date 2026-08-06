@@ -1,0 +1,26 @@
+---
+title: Adaptação de domínio para detecção
+persona: O Nevoeiro
+tagline: Adaptação de domínio não supervisionada para detecção em vocabulário aberto.
+accent: '#8FA6B8'
+order: 3
+year: '2026—'
+stack: ['Grounding DINO', 'LoRA', 'Cityscapes']
+links: []
+---
+
+Pesquisa de mestrado, em andamento. Adaptação de domínio não supervisionada
+para detecção de objetos em vocabulário aberto: uma adaptação leve e sem
+acesso ao domínio fonte do lado textual de um detector de vocabulário aberto
+congelado (Grounding DINO), via prompt tuning e LoRA. É também um estudo
+empírico sobre quando âncoras de VLM realmente ajudam a pseudo-rotulagem sob
+deslocamento de domínio.
+
+A ideia original — usar CLIP como filtro para pseudo-rótulos — não funcionou,
+por razões estruturais: um teto de recall, e o fato de a pontuação da âncora
+estar correlacionada com a confiança do professor sob corrupção. Esse
+resultado negativo virou motivação e objeto de análise, em vez de ser
+escondido.
+
+Os benchmarks são Cityscapes e Foggy Cityscapes. Tudo é desenhado para rodar
+em uma única GPU de consumo.

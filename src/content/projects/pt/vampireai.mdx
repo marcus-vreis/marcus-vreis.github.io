@@ -1,0 +1,26 @@
+---
+title: VampireAI
+persona: O Jogador Míope
+tagline: Um agente que joga um roguelike por turnos usando visão-linguagem local.
+accent: '#C1272D'
+order: 2
+year: '2026'
+stack: ['Qwen2.5-VL', 'Ollama', 'pydantic', 'mss']
+repo: 'https://github.com/marcus-vreis/VampireAI'
+links: []
+---
+
+Um agente que joga Vampire Crawlers, um roguelike de deckbuilding por turnos,
+usando um modelo de visão-linguagem local: Qwen2.5-VL de 7B parâmetros,
+servido via Ollama. Nenhuma API paga, nenhum dado sai da máquina.
+
+A pergunta de pesquisa é o oposto da usual. Não "quão bem um modelo de
+fronteira joga", mas "qual é o menor modelo de peso aberto que joga um jogo
+por turnos de forma razoável". O jogo foi lançado em abril de 2026, então não
+há contaminação nos dados de treino de nenhum modelo.
+
+O pipeline: captura de tela, detector de estado do jogo, percepção via VLM,
+decisão de estratégia validada por pydantic, entrada por gamepad virtual. Em
+2 de maio de 2026 houve um pivô que substituiu coordenadas de mouse por um
+gamepad virtual — cartas passaram a ser selecionadas por destaque visual e
+navegação, o que eliminou toda a calibração de interface.
