@@ -15,6 +15,8 @@ export interface UiStrings {
   specimenCaption: string;
   aboutHeading: string;
   aboutBody: string[];
+  contactHeading: string;
+  contact: { label: string; href: string }[];
 }
 
 export const UI: Record<Locale, UiStrings> = {
@@ -39,6 +41,12 @@ export const UI: Record<Locale, UiStrings> = {
       'Mestrado em andamento em adaptação de domínio para detecção com vocabulário aberto. Graduação na UFV.',
       'Uma RTX 5060 Ti de 16 GB. Sem cluster. Tudo que eu publico roda numa GPU só — e é por isso que o trabalho é desenhado para caber.',
     ],
+    contactHeading: 'Contato',
+    contact: [
+      { label: 'GitHub', href: 'https://github.com/marcus-vreis' },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/' },
+      { label: 'E-mail', href: 'mailto:marcusvinicius0083@gmail.com' },
+    ],
   },
   en: {
     siteTitle: 'Marcus Vinicius — Optical Bench',
@@ -60,6 +68,12 @@ export const UI: Record<Locale, UiStrings> = {
       'Computer-vision engineer at Pix Force, working on production inference, video streaming and GPU workloads.',
       'Ongoing master’s research on domain adaptation for open-vocabulary detection. Undergraduate degree at UFV.',
       'One RTX 5060 Ti, 16 GB. No cluster. Everything I publish runs on a single GPU — which is why the work is designed to fit.',
+    ],
+    contactHeading: 'Contact',
+    contact: [
+      { label: 'GitHub', href: 'https://github.com/marcus-vreis' },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/' },
+      { label: 'Email', href: 'mailto:marcusvinicius0083@gmail.com' },
     ],
   },
 };

@@ -24,26 +24,30 @@ const d = entry.data;
   description={d.tagline}
   locale="pt"
 >
-  <article style={`--accent: light-dark(${d.accentLight}, ${d.accent})`}>
-    <LocaleToggle current="pt" pathname={Astro.url.pathname} />
-    <p class="persona tabular">{d.persona}</p>
-    <h1>{d.title}</h1>
-    <p class="tagline">{d.tagline}</p>
+  <main>
+    <article style={`--accent: light-dark(${d.accentLight}, ${d.accent})`}>
+      <LocaleToggle current="pt" pathname={Astro.url.pathname} />
+      <p class="persona tabular">{d.persona}</p>
+      <h1>{d.title}</h1>
+      <p class="tagline">{d.tagline}</p>
 
-    <dl class="meta tabular">
-      <dt>{t.yearLabel}</dt><dd>{d.year}</dd>
-      <dt>{t.stackLabel}</dt><dd>{d.stack.join(' · ')}</dd>
-    </dl>
+      <dl class="meta tabular">
+        <dt>{t.yearLabel}</dt><dd>{d.year}</dd>
+        <dt>{t.stackLabel}</dt><dd>{d.stack.join(' · ')}</dd>
+      </dl>
 
-    <div class="prose"><Content /></div>
+      <div class="prose"><Content /></div>
 
-    <ul class="links">
-      {d.repo && <li><a href={d.repo}>{t.repoLabel}</a></li>}
-      {d.links.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
-    </ul>
+      {(d.repo || d.links.length > 0) && (
+        <ul class="links">
+          {d.repo && <li><a href={d.repo}>{t.repoLabel}</a></li>}
+          {d.links.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+        </ul>
+      )}
 
-    <a class="back" href="/">← {t.backLabel}</a>
-  </article>
+      <a class="back" href="/">← {t.backLabel}</a>
+    </article>
+  </main>
 </Base>
 
 <style>
