@@ -33,6 +33,9 @@ const hasCover = Boolean(cover && coverAlt);
 
 <section
   id={slug}
+  data-station
+  data-accent={accent}
+  data-accent-light={accentLight}
   aria-labelledby={`${slug}-title`}
   class:list={{ 'has-cover': hasCover }}
   style={`--accent: light-dark(${accentLight}, ${accent})`}
@@ -133,6 +136,8 @@ const hasCover = Boolean(cover && coverAlt);
   }
 
   .cover {
+    position: relative;
+    overflow: hidden;
     border: 1px solid var(--rule);
     line-height: 0;
   }
@@ -149,3 +154,28 @@ const hasCover = Boolean(cover && coverAlt);
     }
   }
 </style>
+
+<script>
+  // O gerente de estações vive em `src/lib/gl/station-controller.ts`, não
+  // aqui. Este componente é usado dez vezes na página, mas Astro deduplica
+  // o `<script>` de módulo — ele roda UMA vez para a página inteira, não
+  // uma vez por estação — e o que roda aqui é só um carregador mínimo.
+  //
+  // Ele espera o evento `load` antes de sequer buscar o gerente: nenhuma
+  // estação monta canvas antes de o visitante rolar até ela, então nada
+  // aqui é crítico para a primeira pintura. Buscar o módulo do gerente (e
+  // as dependências dele) mais cedo faria uma requisição a mais competir
+  // pelas conexões com o CSS e as fontes bem no caminho crítico de
+  // renderização — exatamente o tipo de coisa que derruba o LCP. Por isso
+  // `import()` aqui é dinâmico e só dispara depois do `load`, em vez de um
+  // `import` estático de topo, que o Astro buscaria imediatamente.
+  function boot(): void {
+    import('../lib/gl/station-controller').then((m) => m.bootStations());
+  }
+
+  if (document.readyState === 'complete') {
+    boot();
+  } else {
+    window.addEventListener('load', boot, { once: true });
+  }
+</script>
