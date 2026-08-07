@@ -4,11 +4,29 @@
 
 import quadVertexSource from '../../shaders/quad.vert?raw';
 
+/**
+ * Uniforms que um shader pode consumir. Nenhum é obrigatório: um shader que
+ * não declara um destes uniforms simplesmente recebe `getUniformLocation ===
+ * null` para ele, e `gl.uniform*` com localização nula é um no-op silencioso
+ * pela própria spec do WebGL — por isso o renderer pode sempre tentar setar
+ * os quatro sem saber quais o fragment shader ligado realmente usa.
+ */
+export interface DrawUniforms {
+  /** Progresso 0→1 de um efeito guiado por tempo, como a abertura. */
+  progress?: number;
+  /** Posição do ponteiro em uv [0,1], ou [-1,-1] quando fora da área. */
+  pointer?: [number, number];
+  /** Cor de acento do projeto, já normalizada 0..1 por canal. */
+  accent?: [number, number, number];
+  /** Progresso 0→1 de entrada da estação na viewport. */
+  enter?: number;
+}
+
 export interface Renderer {
   /** Redimensiona o buffer ao tamanho de exibição. Idempotente. */
   resize(): void;
   /** Desenha um quadro com os uniforms dados. */
-  draw(uniforms: { progress: number; pointer: [number, number] }): void;
+  draw(uniforms: DrawUniforms): void;
   /** Libera contexto, texturas e programa. */
   dispose(): void;
 }
@@ -129,12 +147,16 @@ export function createRenderer(
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, raster);
 
-    // Localizações guardadas uma vez — nunca consultadas por quadro.
+    // Localizações guardadas uma vez — nunca consultadas por quadro. Um
+    // shader que não declara um destes uniforms rende `null` aqui, e os
+    // `gl.uniform*` correspondentes em `draw()` viram no-op.
     const uniformLocations = {
       uImage: gl.getUniformLocation(program, 'uImage'),
       uResolution: gl.getUniformLocation(program, 'uResolution'),
       uProgress: gl.getUniformLocation(program, 'uProgress'),
       uPointer: gl.getUniformLocation(program, 'uPointer'),
+      uAccent: gl.getUniformLocation(program, 'uAccent'),
+      uEnter: gl.getUniformLocation(program, 'uEnter'),
     };
 
     let width = 0;
@@ -152,19 +174,24 @@ export function createRenderer(
       gl.viewport(0, 0, width, height);
     }
 
-    function draw(uniforms: { progress: number; pointer: [number, number] }): void {
+    function draw(uniforms: DrawUniforms): void {
       gl.useProgram(program);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       gl.enableVertexAttribArray(aPosition);
       gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
 
+      const pointer = uniforms.pointer ?? [-1, -1];
+      const accent = uniforms.accent ?? [1, 1, 1];
+
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(uniformLocations.uImage, 0);
       gl.uniform2f(uniformLocations.uResolution, width, height);
-      gl.uniform1f(uniformLocations.uProgress, uniforms.progress);
-      gl.uniform2f(uniformLocations.uPointer, uniforms.pointer[0], uniforms.pointer[1]);
+      gl.uniform1f(uniformLocations.uProgress, uniforms.progress ?? 0);
+      gl.uniform2f(uniformLocations.uPointer, pointer[0], pointer[1]);
+      gl.uniform3f(uniformLocations.uAccent, accent[0], accent[1], accent[2]);
+      gl.uniform1f(uniformLocations.uEnter, uniforms.enter ?? 1);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
