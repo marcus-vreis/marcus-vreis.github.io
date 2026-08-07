@@ -467,11 +467,242 @@ Apagar o `lh.json` e encerrar o servidor.
       nenhum erro no console
 - [ ] As três capturas da revelação foram olhadas e o efeito convence
 
-## Próximas fatias
+---
 
-**Fatia 2 — o `StationManager`:** `IntersectionObserver` trocando o shader por
-estação, crossfade de 600 ms, compilação sob demanda apenas da estação visível e
-da seguinte, e a guarda de FPS que rebaixa para poster em GPU fraca.
+# Fatia 2: o gerente de estações
 
-**Fatia 3 — os dez shaders**, em ordem de valor: VisionForge, VampireAI, UDA/OVD,
-depois os demais. Cada um com o poster pré-renderizado no build.
+## Uma divergência da spec, e por quê
+
+A §3 da spec descreve um canvas WebGL2 **atrás de todo o conteúdo**, trocando de
+shader conforme a estação entra. A §8 da mesma spec exige contraste **AA
+verificado nos dois modos**, e isso é teste automatizado, não intenção.
+
+As duas coisas não convivem. Um shader animado atrás do texto faz o contraste
+variar quadro a quadro: o teste que garante AA deixa de significar alguma coisa,
+e a leitura piora exatamente nas estações que agora carregam imagem.
+
+**Decisão: o shader trata a imagem do próprio projeto, não o fundo da página.**
+
+A intenção declarada na §3 é que "o projeto processe a página com o próprio
+algoritmo". Aplicar o shader à captura do próprio projeto realiza essa intenção
+de forma mais literal — o VisionForge trata a tela do VisionForge — e de quebra
+resolve três problemas: o texto continua sobre fundo sólido e testável, o custo
+de GPU cai de tela cheia para um retângulo, e as oito estações sem imagem
+degradam sozinhas, sem caso especial.
+
+Se o dono do repositório preferir o fundo inteiro depois de ver funcionando, a
+troca é de alvo do renderer, não de arquitetura.
+
+## Escopo
+
+**Dentro:** o `StationManager`, a guarda de FPS, e os dois primeiros shaders de
+estação — VisionForge e VampireAI, as únicas com imagem hoje.
+
+**Fora:** os outros oito shaders (dependem de imagem que ainda não existe), o
+crossfade entre shaders (sem canvas de fundo contínuo, não há o que cruzar — a
+transição vira entrada e saída por estação), e os posters pré-renderizados (o
+`<img>` já é o estado final, como na abertura).
+
+**Orçamento:** JS inicial abaixo de 40 kB. Hoje está em 7.141 bytes.
+
+## Task 1: O gerente
+
+**Files:** Create `src/lib/gl/station-manager.ts`, `tests/unit/station-manager.test.ts`
+
+O gerente decide **quando** um shader roda. Essa decisão é pura e testável; o
+WebGL fica de fora dela.
+
+- [ ] **Step 1: Escrever o teste que falha**
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { planStations } from '../../src/lib/gl/station-manager';
+
+const S = ['a', 'b', 'c', 'd', 'e'];
+
+describe('planStations', () => {
+  it('monta a visível e a seguinte', () => {
+    expect(planStations(S, 'b')).toEqual({ mount: ['b', 'c'], dispose: [] });
+  });
+
+  it('na última, não inventa uma seguinte', () => {
+    expect(planStations(S, 'e')).toEqual({ mount: ['e'], dispose: [] });
+  });
+
+  it('descarta o que ficou para trás', () => {
+    expect(planStations(S, 'd', ['a', 'b', 'd'])).toEqual({
+      mount: ['e'],
+      dispose: ['a', 'b'],
+    });
+  });
+
+  it('não remonta o que já está montado', () => {
+    expect(planStations(S, 'b', ['b', 'c'])).toEqual({ mount: [], dispose: [] });
+  });
+
+  it('sem estação ativa, descarta tudo', () => {
+    expect(planStations(S, null, ['a', 'b'])).toEqual({
+      mount: [],
+      dispose: ['a', 'b'],
+    });
+  });
+
+  it('ignora slug desconhecido', () => {
+    expect(planStations(S, 'z')).toEqual({ mount: [], dispose: [] });
+  });
+});
+```
+
+- [ ] **Step 2: Rodar e confirmar que falha.**
+
+- [ ] **Step 3: Implementar**
+
+```ts
+export interface StationPlan {
+  mount: string[];
+  dispose: string[];
+}
+
+/**
+ * Decide quais estações devem ter shader vivo: a visível e a seguinte, para
+ * que a próxima já esteja compilada quando chegar. Todo o resto é descartado —
+ * manter dez contextos WebGL vivos é a forma mais rápida de derrubar uma GPU
+ * integrada.
+ */
+export function planStations(
+  all: string[],
+  active: string | null,
+  mounted: string[] = [],
+): StationPlan {
+  const index = active === null ? -1 : all.indexOf(active);
+  const wanted = index < 0 ? [] : all.slice(index, index + 2);
+
+  return {
+    mount: wanted.filter((s) => !mounted.includes(s)),
+    dispose: mounted.filter((s) => !wanted.includes(s)),
+  };
+}
+```
+
+- [ ] **Step 4: Rodar e confirmar que passa** — 6 testes novos.
+
+- [ ] **Step 5: Commit** — `feat: plano de montagem das estações`
+
+## Task 2: A guarda de FPS
+
+**Files:** Create `src/lib/gl/fps-guard.ts`, `tests/unit/fps-guard.test.ts`
+
+Numa GPU fraca o efeito precisa sair de cena sozinho, sem o visitante ter que
+pedir.
+
+- [ ] **Step 1: Escrever o teste que falha**
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { createFpsGuard } from '../../src/lib/gl/fps-guard';
+
+describe('createFpsGuard', () => {
+  it('não reprova antes de ter amostras suficientes', () => {
+    const guard = createFpsGuard({ sampleSize: 5, minFps: 30 });
+    for (let i = 0; i < 4; i++) expect(guard.record(100)).toBe(true);
+  });
+
+  it('reprova quando a média fica abaixo do mínimo', () => {
+    const guard = createFpsGuard({ sampleSize: 5, minFps: 30 });
+    let ok = true;
+    for (let i = 0; i < 5; i++) ok = guard.record(100); // 10 fps
+    expect(ok).toBe(false);
+  });
+
+  it('aprova quando a média está acima do mínimo', () => {
+    const guard = createFpsGuard({ sampleSize: 5, minFps: 30 });
+    let ok = true;
+    for (let i = 0; i < 5; i++) ok = guard.record(16); // ~62 fps
+    expect(ok).toBe(true);
+  });
+
+  it('ignora quadros absurdos — aba em segundo plano não conta', () => {
+    const guard = createFpsGuard({ sampleSize: 3, minFps: 30 });
+    guard.record(16);
+    guard.record(5000); // descartado
+    guard.record(16);
+    expect(guard.record(16)).toBe(true);
+  });
+
+  it('uma vez reprovado, continua reprovado', () => {
+    const guard = createFpsGuard({ sampleSize: 2, minFps: 30 });
+    guard.record(100);
+    expect(guard.record(100)).toBe(false);
+    expect(guard.record(1)).toBe(false);
+  });
+});
+```
+
+- [ ] **Step 2: Rodar e confirmar que falha.**
+
+- [ ] **Step 3: Implementar**
+
+Assinatura: `createFpsGuard({ sampleSize, minFps })` devolve `{ record(deltaMs): boolean }`.
+`record` devolve `false` assim que a média móvel de `sampleSize` quadros ficar
+abaixo de `minFps`, e nunca mais volta a `true`. Deltas acima de 1000 ms são
+descartados sem entrar na média — são aba em segundo plano ou pausa do sistema,
+não GPU lenta.
+
+- [ ] **Step 4: Rodar e confirmar que passa** — 5 testes novos.
+
+- [ ] **Step 5: Commit** — `feat: guarda de FPS`
+
+## Task 3: Os dois shaders de estação
+
+**Files:** Create `src/shaders/stations/visionforge.frag`, `src/shaders/stations/vampireai.frag`
+
+Ambos tratam a **imagem da própria estação**. Contenção é o critério: o efeito
+tem que parecer intencional a 20% de intensidade, não a 100%.
+
+**VisionForge — "O Instrumento".** Uma grade de medição fina por cima, e uma
+linha de leitura que varre a imagem uma vez, de cima a baixo, quando a estação
+entra — como instrumento adquirindo. Depois da varredura, fica só a grade,
+quase imperceptível. Verde do acento do projeto, vindo por uniform, não
+hardcoded.
+
+**VampireAI — "O Jogador Míope".** Scanlines de CRT, aberração cromática leve
+nas bordas, e uma vinheta discreta. É a tela como um modelo pequeno a enxerga.
+Sem piscar, sem glitch aleatório — o projeto é sobre percepção limitada, não
+sobre estética glitch.
+
+Os dois recebem `uAccent` (vec3) e `uEnter` (0 a 1, progresso da entrada da
+estação). Nenhum hex dentro do shader.
+
+- [ ] **Commit** — `feat: shaders das duas primeiras estações`
+
+## Task 4: Ligar nas estações
+
+**Files:** Modify `src/components/Station.astro`
+
+Mesmo padrão do espécime: a `<img>` continua no DOM e é o fallback; o canvas só
+existe se `shouldAnimate()` for verdadeiro. O `IntersectionObserver` alimenta o
+`planStations`, e o `dispose()` acontece de verdade quando a estação sai — nada
+de dez contextos vivos.
+
+O shader é escolhido pelo slug. Estação sem shader correspondente, ou sem
+imagem, simplesmente não monta canvas — sem caso especial no template.
+
+- [ ] **Commit** — `feat: shader por estação sobre a própria imagem`
+
+## Task 5: Verificar
+
+- [ ] `npm test` — 116 testes (105 + 6 + 5)
+- [ ] `npm run check` limpo, `npm run build` com 22 páginas
+- [ ] e2e: canvas presente nas duas estações com shader, ausente nas outras oito,
+      ausente sob `prefers-reduced-motion`, console limpo
+- [ ] JS inicial abaixo de 40 kB, com o número reportado
+- [ ] Lighthouse 100/100/100
+- [ ] **Capturar as duas estações e olhar.** O efeito precisa parecer deliberado.
+      Se parecer enfeite, baixar a intensidade até parecer.
+
+---
+
+## Próxima fatia
+
+**Fatia 3 — os oito shaders restantes**, conforme as imagens chegarem. Cada um
+com a mecânica interativa descrita na §6 da spec.
