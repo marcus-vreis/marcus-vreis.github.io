@@ -31,8 +31,9 @@ void main() {
   // Um canal por fotossítio: multiplica por 3 para o brilho não desabar.
   vec3 raw = full * mask * 3.0;
 
-  // Ruído de leitura, some junto com o mosaico.
-  raw += (hash(floor(px / block)) - 0.5) * 0.30 * (1.0 - p);
+  // Ruído de leitura, some junto com o mosaico. Baixo o bastante para não
+  // afogar o padrão RGGB por trás dele.
+  raw += (hash(floor(px / block)) - 0.5) * 0.14 * (1.0 - p);
 
   vec3 color = mix(raw, full, smoothstep(0.30, 1.0, p));
 

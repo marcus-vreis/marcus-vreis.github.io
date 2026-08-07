@@ -41,4 +41,39 @@ for (const shot of SHOTS) {
   console.log('ok', shot.file);
 }
 
+// A abertura: três momentos da revelação do espécime (mosaico de Bayer cru
+// até a imagem final). `window.__specimenProgress` é atualizado a cada
+// quadro pelo script de Specimen.astro — usamos isso para travar cada
+// captura num ponto exato do progresso em vez de adivinhar por tempo.
+const REVEAL_STOPS = [
+  { file: 'hero-reveal-1.png', progress: 0 }, // leitura crua, mosaico grande
+  { file: 'hero-reveal-2.png', progress: 0.25 }, // padrão RGGB legível
+  { file: 'hero-reveal-3.png', progress: 1 }, // resolvida
+];
+
+{
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    colorScheme: 'dark',
+    deviceScaleFactor: 2,
+  });
+  const page = await context.newPage();
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+
+  const frame = page.locator('.specimen-frame');
+  const box = await frame.boundingBox();
+
+  for (const stop of REVEAL_STOPS) {
+    await page.waitForFunction(
+      (p) => (window.__specimenProgress ?? -1) >= p,
+      stop.progress,
+    );
+    await page.screenshot({ path: `${OUT}/${stop.file}`, clip: box });
+    console.log('ok', stop.file);
+  }
+
+  await context.close();
+}
+
 await browser.close();
