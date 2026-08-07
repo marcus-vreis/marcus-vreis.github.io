@@ -21,7 +21,7 @@ assertParity(
 const projects = entriesFor(all, 'en');
 
 const t = UI.en;
-const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.title }));
+const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.railLabel ?? p.data.title }));
 ---
 
 <Base title={t.siteTitle} description={t.siteDescription} locale="en">
@@ -46,6 +46,8 @@ const stops = projects.map((p) => ({ slug: slugOf(p.id), label: p.data.title }))
         year={p.data.year}
         stack={p.data.stack}
         href={buildPath({ kind: 'project', slug: slugOf(p.id) }, 'en')}
+        cover={p.data.cover}
+        coverAlt={p.data.coverAlt}
         yearLabel={t.yearLabel}
         stackLabel={t.stackLabel}
         readLabel={t.readLabel}
