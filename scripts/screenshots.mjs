@@ -76,4 +76,41 @@ const REVEAL_STOPS = [
   await context.close();
 }
 
+// As estações: cada uma trata a própria capa com o shader do projeto.
+// `window.__stationEnter[slug]` é atualizado a cada quadro pelo script de
+// Station.astro — usamos isso para travar a captura num ponto exato da
+// entrada, em vez de adivinhar por tempo. Um recorte no meio da entrada
+// (a varredura do VisionForge) e um depois de assentada (VampireAI, e o
+// VisionForge só com a grade).
+const STATION_STOPS = [
+  { file: 'station-visionforge-sweep.png', slug: 'visionforge', progress: 0.45 },
+  { file: 'station-visionforge-settled.png', slug: 'visionforge', progress: 1 },
+  { file: 'station-vampireai-settled.png', slug: 'vampireai', progress: 1 },
+];
+
+{
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    colorScheme: 'dark',
+    deviceScaleFactor: 2,
+  });
+  const page = await context.newPage();
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+
+  for (const stop of STATION_STOPS) {
+    const section = page.locator(`#${stop.slug}`);
+    await section.scrollIntoViewIfNeeded();
+    await page.waitForFunction(
+      ({ slug, p }) => (window.__stationEnter?.[slug] ?? -1) >= p,
+      { slug: stop.slug, p: stop.progress },
+    );
+    const box = await section.locator('.cover').boundingBox();
+    await page.screenshot({ path: `${OUT}/${stop.file}`, clip: box });
+    console.log('ok', stop.file);
+  }
+
+  await context.close();
+}
+
 await browser.close();
