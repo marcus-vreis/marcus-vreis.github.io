@@ -23,8 +23,10 @@ void main() {
   float radius = length(centered) * 1.41421356;
 
   // Aberração cromática: cresce com o quadrado da distância, então é
-  // praticamente invisível perto do centro e só leve na borda.
-  float shift = 0.006 * radius * intensity;
+  // praticamente invisível perto do centro e só leve na borda. Coeficiente
+  // baixo de propósito — em pixel art de bordas duras, mesmo um
+  // deslocamento pequeno já fica bem visível.
+  float shift = 0.0018 * radius * intensity;
   vec2 offset = centered * shift;
   float r = texture(uImage, vUv - offset).r;
   float g = texture(uImage, vUv).g;
@@ -32,16 +34,19 @@ void main() {
   vec3 color = vec3(r, g, b);
 
   // Scanlines de CRT: período fixo em pixels de tela — função só de
-  // `gl_FragCoord.y`, nunca do tempo, então não piscam.
+  // `gl_FragCoord.y`, nunca do tempo, então não piscam. Modulação rasa,
+  // um traço, não um filtro.
   float scan = sin(gl_FragCoord.y * 3.14159265 / 1.6);
-  color *= mix(1.0, 0.90 + 0.10 * scan, intensity);
+  color *= mix(1.0, 0.95 + 0.05 * scan, intensity);
 
-  // Vinheta discreta: atenção caindo nas bordas, não um túnel escuro.
-  float vignette = smoothstep(0.95, 0.35, radius);
-  color *= mix(1.0, 0.72 + 0.28 * vignette, intensity);
+  // Vinheta discreta: `falloff` vai de 0 no centro a 1 na borda; escurece
+  // no máximo 16% lá fora, nunca um túnel escuro.
+  float falloff = smoothstep(0.35, 0.95, radius);
+  color *= mix(1.0, 1.0 - falloff * 0.16, intensity);
 
-  // Um traço do acento do projeto nas luzes — a lente do observador, sutil.
-  color += uAccent * 0.03 * intensity;
+  // Um traço do acento do projeto nas sombras — a lente do observador,
+  // quase subliminar.
+  color += uAccent * 0.02 * intensity;
 
   fragColor = vec4(color, 1.0);
 }
