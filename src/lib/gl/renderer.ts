@@ -2,6 +2,8 @@
 // nada sobre Bayer nem sobre o site — recebe um canvas, o fragment shader e a
 // imagem, devolve um handle ou `null` se o navegador não conseguir.
 
+import quadVertexSource from '../../shaders/quad.vert?raw';
+
 export interface Renderer {
   /** Redimensiona o buffer ao tamanho de exibição. Idempotente. */
   resize(): void;
@@ -10,18 +12,6 @@ export interface Renderer {
   /** Libera contexto, texturas e programa. */
   dispose(): void;
 }
-
-// Substituído por `src/shaders/quad.vert` (via import `?raw`) quando os
-// shaders da abertura entrarem — mantido aqui só até lá.
-const VERTEX_SOURCE = `#version 300 es
-in vec2 aPosition;
-out vec2 vUv;
-
-void main() {
-  vUv = aPosition * 0.5 + 0.5;
-  gl_Position = vec4(aPosition, 0.0, 1.0);
-}
-`;
 
 /** Acima disso o custo de pixels sobe sem ganho visível. */
 const MAX_DEVICE_PIXEL_RATIO = 2;
@@ -66,7 +56,7 @@ export function createRenderer(
     // propaga o `if` acima para dentro das closures declaradas abaixo.
     const gl: WebGL2RenderingContext = gl2;
 
-    const vertexShader = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SOURCE);
+    const vertexShader = compileShader(gl, gl.VERTEX_SHADER, quadVertexSource);
     const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
     if (!vertexShader || !fragmentShader) return null;
 
