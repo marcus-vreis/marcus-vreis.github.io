@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+
 interface Props {
   slug: string;
   title: string;
@@ -9,6 +11,12 @@ interface Props {
   year: string;
   stack: string[];
   href: string;
+  /** Capa opcional da estação. Quando ausente, o texto ocupa a estação
+   *  inteira em vez de deixar uma coluna vazia. */
+  cover?: ImageMetadata;
+  /** Obrigatório sempre que `cover` estiver presente — o schema de conteúdo
+   *  garante o par, mas o componente não assume isso silenciosamente. */
+  coverAlt?: string;
   /** Rótulos vêm do idioma da página — o componente é compartilhado. */
   yearLabel: string;
   stackLabel: string;
@@ -16,37 +24,82 @@ interface Props {
 }
 
 const {
-  slug, title, persona, tagline, accent, accentLight, year, stack, href,
+  slug, title, persona, tagline, accent, accentLight, year, stack, href, cover, coverAlt,
   yearLabel, stackLabel, readLabel,
 } = Astro.props;
+
+const hasCover = Boolean(cover && coverAlt);
 ---
 
-<section id={slug} aria-labelledby={`${slug}-title`} style={`--accent: light-dark(${accentLight}, ${accent})`}>
-  <p class="persona tabular">{persona}</p>
-  <h2 id={`${slug}-title`}>{title}</h2>
-  <p class="tagline">{tagline}</p>
+<section
+  id={slug}
+  aria-labelledby={`${slug}-title`}
+  class:list={{ 'has-cover': hasCover }}
+  style={`--accent: light-dark(${accentLight}, ${accent})`}
+>
+  <div class="frame">
+    <div class="content">
+      <p class="persona tabular">{persona}</p>
+      <h2 id={`${slug}-title`}>{title}</h2>
+      <p class="tagline">{tagline}</p>
 
-  <dl class="meta tabular">
-    <dt>{yearLabel}</dt><dd>{year}</dd>
-    <dt>{stackLabel}</dt><dd>{stack.join(' · ')}</dd>
-  </dl>
+      <dl class="meta tabular">
+        <dt>{yearLabel}</dt><dd>{year}</dd>
+        <dt>{stackLabel}</dt><dd>{stack.join(' · ')}</dd>
+      </dl>
 
-  <slot />
+      <slot />
 
-  <a class="read" href={href}>{readLabel}</a>
+      <a class="read" href={href}>{readLabel}</a>
+    </div>
+
+    {hasCover && cover && (
+      <div class="cover">
+        <Image
+          src={cover}
+          alt={coverAlt as string}
+          width={960}
+          format="webp"
+          quality={70}
+          loading="lazy"
+          decoding="async"
+          fetchpriority="low"
+        />
+      </div>
+    )}
+  </div>
 </section>
 
 <style>
   section {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1rem;
-    padding: 4rem 1.5rem;
+    border-top: 1px solid var(--rule);
+    padding-block: clamp(3rem, 2rem + 4vw, 6rem);
+    padding-inline: 1.5rem;
+    scroll-margin-top: 4rem;
+  }
+
+  .frame {
+    /* Sem capa, a estação é uma coluna de leitura — a mesma largura do
+       cabeçalho e da seção "sobre". Não reserva uma segunda coluna vazia. */
     max-width: 46rem;
     margin-inline: auto;
-    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: clamp(2rem, 4vw, 4rem);
+  }
+
+  section.has-cover .frame {
+    /* Com capa, a estação ganha largura para acomodar as duas colunas. */
+    max-width: 64rem;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
   .persona {
@@ -77,5 +130,22 @@ const {
     border-bottom: 1px solid var(--accent);
     text-decoration: none;
     font-size: 0.875rem;
+  }
+
+  .cover {
+    border: 1px solid var(--rule);
+    line-height: 0;
+  }
+
+  .cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 40rem) {
+    section.has-cover .frame {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
