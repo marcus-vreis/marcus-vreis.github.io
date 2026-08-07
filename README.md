@@ -37,9 +37,28 @@ the design system. The WebGL layer and the per-project mechanics come next (see
 |---|---|
 | ![The master's research page, reporting the negative result in full](docs/images/project-page.png) | ![The rail at 390px, labels kept in the accessibility tree](docs/images/mobile.png) |
 
+## The opening
+
+The specimen doesn't fade in — it **resolves**. It starts as a raw Bayer sensor
+readout, where each block carries only one of red, green or blue in the RGGB
+pattern a real camera sensor uses, plus read noise. Over 1.4 seconds the blocks
+shrink to single pixels, the noise falls away and demosaicing fills in the
+missing channels. From pixels to a person.
+
+| Raw sensor | Resolving | Resolved |
+|---|---|---|
+| ![The specimen as a raw RGGB sensor mosaic](docs/images/hero-reveal-1.png) | ![The mosaic finer, colour fringing at the edges](docs/images/hero-reveal-2.png) | ![The finished image](docs/images/hero-reveal-3.png) |
+
+It's a hand-written WebGL2 layer — one full-screen quad, one fragment shader, no
+library — and it costs **7 kB** of JavaScript, fetched only when the browser can
+actually use it. Without WebGL2, or under `prefers-reduced-motion`, no canvas is
+created at all and the image is simply there.
+
 The portrait is a **stick figure on purpose** — the real photograph doesn't exist
 yet, so the slot ships at its final 4:5 crop with a placeholder standing in.
-Swapping it is a one-file change.
+Swapping it is a one-file change. It will also make the effect land harder: a
+bold line drawing survives block quantisation far better than skin tones and soft
+gradients do, so the real photo will be much less readable at the start.
 
 ## Stack
 
