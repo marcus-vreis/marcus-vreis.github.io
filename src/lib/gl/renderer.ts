@@ -27,6 +27,31 @@ const QUAD_VERTICES = new Float32Array([
    1,  1,
 ]);
 
+/**
+ * Alguns navegadores recusam ou corrompem `texImage2D` a partir de uma
+ * `<img>` de SVG direto — o vetor ainda não foi rasterizado num bitmap no
+ * instante em que a textura é montada, mesmo depois de `img.decode()`
+ * resolver (visto na prática: `INVALID_VALUE: texImage2D: bad image data`,
+ * de forma intermitente). Repassar por um canvas 2D força a rasterização
+ * antes da textura, o que é confiável tanto para SVG quanto para raster —
+ * por isso vale para qualquer imagem, não só para o placeholder.
+ */
+function rasterize(image: HTMLImageElement): HTMLCanvasElement | null {
+  const attrWidth = Number(image.getAttribute('width'));
+  const attrHeight = Number(image.getAttribute('height'));
+  const width = attrWidth > 0 ? attrWidth : image.naturalWidth || image.width;
+  const height = attrHeight > 0 ? attrHeight : image.naturalHeight || image.height;
+  if (!width || !height) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(image, 0, 0, width, height);
+  return canvas;
+}
+
 function compileShader(
   gl: WebGL2RenderingContext,
   type: number,
@@ -83,6 +108,13 @@ export function createRenderer(
 
     const aPosition = gl.getAttribLocation(program, 'aPosition');
 
+    const raster = rasterize(image);
+    if (!raster) {
+      gl.deleteBuffer(buffer);
+      gl.deleteProgram(program);
+      return null;
+    }
+
     const texture = gl.createTexture();
     if (!texture) {
       gl.deleteBuffer(buffer);
@@ -95,7 +127,7 @@ export function createRenderer(
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, raster);
 
     // Localizações guardadas uma vez — nunca consultadas por quadro.
     const uniformLocations = {

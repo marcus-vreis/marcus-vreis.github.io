@@ -14,20 +14,27 @@ const SPECIMEN_SRC = '/specimen/placeholder.svg';
 ---
 
 <figure class="specimen">
-  <img src={SPECIMEN_SRC} alt={alt} width="400" height="500" />
+  <div class="specimen-frame">
+    <img src={SPECIMEN_SRC} alt={alt} width="400" height="500" />
+  </div>
   <figcaption class="tabular">{caption}</figcaption>
 </figure>
 
 <style>
   .specimen { margin: 0; max-width: 20rem; }
 
-  img {
+  .specimen-frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    aspect-ratio: 4 / 5;
+  }
+
+  .specimen-frame img {
     display: block;
     width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 5;
+    height: 100%;
     object-fit: cover;
-    border: 1px solid var(--rule);
   }
 
   figcaption {
@@ -38,3 +45,128 @@ const SPECIMEN_SRC = '/specimen/placeholder.svg';
     text-transform: uppercase;
   }
 </style>
+
+<script>
+  // A abertura: o espécime se resolve de leitura crua de sensor até a
+  // imagem final. Roda só quando há WebGL2 e o visitante não pediu menos
+  // movimento — nesses casos o script sai no primeiro `if` sem baixar o
+  // renderer nem os shaders, e a <img> estática fica sendo o conteúdo real.
+  import { shouldAnimate, browserProbes } from '../lib/gl/support';
+  import { easeOutCubic } from '../lib/gl/easing';
+  import type { Renderer } from '../lib/gl/renderer';
+
+  // Hook só para captura determinística da revelação em teste/script — não é
+  // texto de exibição, não afeta o efeito.
+  declare global {
+    interface Window {
+      __specimenProgress?: number;
+    }
+  }
+
+  const REVEAL_MS = 1400;
+
+  async function boot(): Promise<void> {
+    if (!shouldAnimate(browserProbes)) return;
+
+    const frame = document.querySelector<HTMLElement>('.specimen-frame');
+    const img = frame?.querySelector<HTMLImageElement>('img');
+    if (!frame || !img) return;
+
+    try {
+      await img.decode();
+    } catch {
+      return; // Imagem não decodificou — a <img> estática já está visível.
+    }
+
+    // O canvas só existe no DOM quando o efeito de fato vai rodar.
+    const canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.position = 'absolute';
+    canvas.style.inset = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    canvas.style.opacity = '0';
+    frame.appendChild(canvas);
+
+    let renderer: Renderer | null = null;
+    try {
+      const [{ createRenderer }, fragmentModule] = await Promise.all([
+        import('../lib/gl/renderer'),
+        import('../shaders/hero-bayer.frag?raw'),
+      ]);
+      renderer = createRenderer(canvas, fragmentModule.default, img);
+    } catch (error) {
+      console.error(error);
+    }
+
+    if (!renderer) {
+      canvas.remove(); // A imagem já está visível — nada a fazer.
+      return;
+    }
+    const activeRenderer: Renderer = renderer;
+
+    let pointer: [number, number] = [-1, -1];
+    let lastProgress = 0;
+    let raf = 0;
+    let finished = false;
+    let start: number | null = null;
+
+    function render(progress: number): void {
+      lastProgress = progress;
+      window.__specimenProgress = progress;
+      activeRenderer.draw({ progress, pointer });
+    }
+
+    render(0);
+    canvas.style.opacity = '1';
+
+    function tick(now: number): void {
+      if (start === null) start = now;
+      const t = (now - start) / REVEAL_MS;
+      if (t >= 1) {
+        finished = true;
+        render(1);
+        return;
+      }
+      render(easeOutCubic(t));
+      raf = requestAnimationFrame(tick);
+    }
+
+    raf = requestAnimationFrame(tick);
+
+    document.addEventListener('visibilitychange', () => {
+      // A aba sumiu no meio da revelação: pula pro fim em vez de animar
+      // em segundo plano.
+      if (document.hidden && !finished) {
+        cancelAnimationFrame(raf);
+        finished = true;
+        render(1);
+      }
+    });
+
+    frame.addEventListener('pointermove', (event) => {
+      const rect = frame.getBoundingClientRect();
+      pointer = [
+        (event.clientX - rect.left) / rect.width,
+        (event.clientY - rect.top) / rect.height,
+      ];
+      // Enquanto a revelação roda, o próprio laço já pega o pointer novo
+      // no próximo quadro. Só depois de parado é que pedimos um quadro extra.
+      if (finished) render(1);
+    });
+
+    frame.addEventListener('pointerleave', () => {
+      pointer = [-1, -1];
+      if (finished) render(1);
+    });
+
+    const resizeObserver = new ResizeObserver(() => {
+      activeRenderer.resize();
+      render(lastProgress);
+    });
+    resizeObserver.observe(frame);
+  }
+
+  void boot();
+</script>
