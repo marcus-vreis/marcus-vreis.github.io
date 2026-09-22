@@ -6,14 +6,10 @@ export interface UiStrings {
   siteDescription: string;
   thesis: string;
   intro: string;
-  navLabel: string;
   yearLabel: string;
   stackLabel: string;
-  readLabel: string;
   repoLabel: string;
   backLabel: string;
-  specimenAlt: string;
-  specimenCaption: string;
   aboutHeading: string;
   aboutBody: string[];
   contactHeading: string;
@@ -33,14 +29,10 @@ export const UI: Record<Locale, UiStrings> = {
     thesis: 'Construo instrumentos para ver.',
     intro:
       'Engenheiro de visão computacional. Cada máquina da bancada é um projeto meu — e o estado dela vem do repositório de verdade.',
-    navLabel: 'Estações do banco óptico',
     yearLabel: 'Ano',
     stackLabel: 'Stack',
-    readLabel: 'Abrir estação',
     repoLabel: 'Repositório',
     backLabel: 'Voltar para a bancada',
-    specimenAlt: 'Bonequinho de palito no lugar do retrato',
-    specimenCaption: 'Espécime — retrato pendente',
     aboutHeading: 'Sobre',
     aboutBody: [
       'Engenheiro de visão computacional na Pix Force, onde trabalho com inferência em produção, streaming de vídeo e GPU.',
@@ -73,14 +65,10 @@ export const UI: Record<Locale, UiStrings> = {
     thesis: 'I build instruments for seeing.',
     intro:
       'Computer-vision engineer. Every machine on the bench is one of my projects — and its state comes from the real repository.',
-    navLabel: 'Optical bench stations',
     yearLabel: 'Year',
     stackLabel: 'Stack',
-    readLabel: 'Open station',
     repoLabel: 'Repository',
     backLabel: 'Back to the bench',
-    specimenAlt: 'Stick figure standing in for the portrait',
-    specimenCaption: 'Specimen — portrait pending',
     aboutHeading: 'About',
     aboutBody: [
       'Computer-vision engineer at Pix Force, working on production inference, video streaming and GPU workloads.',

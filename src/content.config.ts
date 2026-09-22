@@ -17,9 +17,6 @@ const projects = defineCollection({
       .object({
         /** Nome do projeto como aparece no título da estação. */
         title: z.string(),
-        /** Rótulo curto para o trilho, quando o título é longo demais para
-         *  caber nele. Ausente na maioria dos projetos — cai para `title`. */
-        railLabel: z.string().optional(),
         /** O apelido da estação: "O Instrumento", "O Nevoeiro". */
         persona: z.string(),
         /** Uma linha que resume o projeto. */
