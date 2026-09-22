@@ -1,50 +1,80 @@
 import { expect, test } from '@playwright/test';
+import { PALETTE } from '../../src/lib/tokens';
 
-const SLUGS = [
-  'visionforge', 'vampireai', 'uda-ovd', 'airwatch', 'imagelab',
-  'coffeebean', 'cv-knn', 'sorting-hub', 'voleiarena', 'rvh-construtora',
+const PROJECTS = [
+  'visionforge', 'vampireai', 'airwatch', 'imagelab', 'coffeebean',
+  'cv-knn', 'sorting-hub', 'voleiarena', 'rvh-construtora',
 ];
+const MOODS = ['formado', 'a-todo-vapor', 'ativo', 'bocejando', 'cochilando', 'dormindo'];
 
-test('a home lista as dez estações na ordem do trilho', async ({ page }) => {
+function hexToRgb(hex: string): string {
+  const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+test('o índice lista os nove projetos na ordem do conteúdo', async ({ page }) => {
   await page.goto('/');
-  for (const slug of SLUGS) {
-    await expect(page.locator(`section#${slug}`)).toHaveCount(1);
+  const slugs = await page
+    .locator('#projetos a[data-slug]')
+    .evaluateAll((els) => els.map((el) => el.getAttribute('data-slug')));
+  expect(slugs).toEqual(PROJECTS);
+});
+
+// O humor exato muda com os dados de cada dia; o teste verifica a forma,
+// e a regra fica coberta pelos testes de unidade de mood.ts.
+test('cada linha diz o humor em palavras e o dado que o justifica', async ({ page }) => {
+  await page.goto('/');
+  for (const row of await page.locator('#projetos a[data-slug]').all()) {
+    expect(MOODS).toContain(await row.getAttribute('data-mood'));
+    await expect(row.locator('.mood')).not.toBeEmpty();
+    await expect(row.locator('.detail')).not.toBeEmpty();
   }
-  const links = page.locator('nav[aria-label] a[data-stop]');
-  await expect(links).toHaveCount(SLUGS.length);
-  await expect(links.first()).toHaveAttribute('data-stop', 'visionforge');
 });
 
-test('o seletor de idioma preserva a estação aberta', async ({ page }) => {
-  await page.goto('/projeto/uda-ovd');
-  await page.getByRole('link', { name: 'English' }).click();
-  await expect(page).toHaveURL(/\/en\/project\/uda-ovd\/?$/);
-
-  await page.getByRole('link', { name: 'Português' }).click();
-  await expect(page).toHaveURL(/\/projeto\/uda-ovd\/?$/);
-});
-
-test('cada estação leva à sua página profunda', async ({ page }) => {
+test('a pesquisa de mestrado fica no Sobre, não no índice', async ({ page }) => {
   await page.goto('/');
-  await page.locator('section#visionforge a.read').click();
+  await expect(page.locator('#projetos a[data-slug="uda-ovd"]')).toHaveCount(0);
+  await expect(page.locator('#sobre a[href="/projeto/uda-ovd"]')).toHaveCount(1);
+});
+
+test('uma linha do índice leva ao projeto', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#projetos a[data-slug="visionforge"]').click();
   await expect(page).toHaveURL(/\/projeto\/visionforge\/?$/);
   await expect(page.locator('h1')).toHaveText('VisionForge');
 });
 
-test('o trilho é percorrível por teclado', async ({ page }) => {
-  await page.goto('/');
-  const first = page.locator('nav[aria-label] a[data-stop]').first();
-  await first.focus();
-  await expect(first).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(page.locator('nav[aria-label] a[data-stop]').nth(1)).toBeFocused();
+test('o seletor de idioma preserva o projeto aberto', async ({ page }) => {
+  await page.goto('/projeto/uda-ovd');
+  await page.getByRole('link', { name: 'English' }).click();
+  await expect(page).toHaveURL(/\/en\/project\/uda-ovd\/?$/);
+  await page.getByRole('link', { name: 'Português' }).click();
+  await expect(page).toHaveURL(/\/projeto\/uda-ovd\/?$/);
 });
 
-test('a home em inglês existe e aponta para as rotas em inglês', async ({ page }) => {
+test('o índice é percorrível por teclado', async ({ page }) => {
+  await page.goto('/');
+  const rows = page.locator('#projetos a[data-slug]');
+  await rows.first().focus();
+  await expect(rows.first()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(rows.nth(1)).toBeFocused();
+});
+
+test('a home em inglês aponta para as rotas em inglês', async ({ page }) => {
   await page.goto('/en/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.locator('section#visionforge a.read')).toHaveAttribute(
+  await expect(page.locator('#projetos a[data-slug="visionforge"]')).toHaveAttribute(
     'href',
     '/en/project/visionforge',
   );
+});
+
+test('o hero é palco escuro mesmo no modo claro', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  const background = await page
+    .locator('header.stage')
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(background).toBe(hexToRgb(PALETTE.dark.bg));
 });

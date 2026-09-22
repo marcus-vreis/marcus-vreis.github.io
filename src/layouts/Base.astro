@@ -34,6 +34,7 @@ const { title, description, locale } = Astro.props;
       @media (prefers-color-scheme: light) { :root { ${paletteToCss('light')} } }
       :root[data-mode="dark"] { ${paletteToCss('dark')} color-scheme: dark; }
       :root[data-mode="light"] { ${paletteToCss('light')} color-scheme: light; }
+      .stage { ${paletteToCss('dark')} color-scheme: dark; background: var(--bg); color: var(--fg); }
     `} />
   </head>
   <body>

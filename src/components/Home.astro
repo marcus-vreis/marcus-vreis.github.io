@@ -1,0 +1,47 @@
+---
+import { getCollection } from 'astro:content';
+import Hero from './Hero.astro';
+import ProjectIndex from './ProjectIndex.astro';
+import About from './About.astro';
+import { snapshot } from '../lib/github/load';
+import { buildIndexRows } from '../lib/index-rows';
+import { assertParity } from '../lib/parity';
+import { entriesFor, slugOf } from '../lib/projects';
+import { buildPath, type Locale } from '../lib/i18n';
+import { UI } from '../lib/ui-strings';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const all = await getCollection('projects');
+
+// Quebra o build se faltar tradução dos dois lados.
+assertParity(
+  entriesFor(all, 'pt').map((e) => slugOf(e.id)),
+  entriesFor(all, 'en').map((e) => slugOf(e.id)),
+);
+
+const { rows, warnings } = buildIndexRows(all, snapshot, locale);
+// As duas línguas calculam o mesmo aviso; basta imprimir uma vez.
+if (locale === 'pt') {
+  for (const warning of warnings) console.warn(`[bancada] ${warning}`);
+}
+
+const research = entriesFor(all, locale)
+  .filter((e) => e.data.kind === 'pesquisa')
+  .map((e) => ({
+    title: e.data.title,
+    tagline: e.data.tagline,
+    href: buildPath({ kind: 'project', slug: slugOf(e.id) }, locale),
+  }));
+
+const t = UI[locale];
+---
+
+<Hero locale={locale} pathname={Astro.url.pathname} />
+<main>
+  <ProjectIndex rows={rows} heading={t.projectsHeading} />
+  <About locale={locale} research={research} />
+</main>

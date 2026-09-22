@@ -27,18 +27,18 @@ export interface UiStrings {
 
 export const UI: Record<Locale, UiStrings> = {
   pt: {
-    siteTitle: 'Marcus Vinicius — Banco Óptico',
+    siteTitle: 'Marcus Vinicius — visão computacional',
     siteDescription:
       'Portfólio de Marcus Vinicius: visão computacional, engenharia de machine learning e software.',
     thesis: 'Construo instrumentos para ver.',
     intro:
-      'Engenheiro de visão computacional. Cada projeto abaixo é uma estação neste banco óptico.',
+      'Engenheiro de visão computacional. Cada máquina da bancada é um projeto meu — e o estado dela vem do repositório de verdade.',
     navLabel: 'Estações do banco óptico',
     yearLabel: 'Ano',
     stackLabel: 'Stack',
     readLabel: 'Abrir estação',
     repoLabel: 'Repositório',
-    backLabel: 'Voltar ao banco óptico',
+    backLabel: 'Voltar para a bancada',
     specimenAlt: 'Bonequinho de palito no lugar do retrato',
     specimenCaption: 'Espécime — retrato pendente',
     aboutHeading: 'Sobre',
@@ -67,18 +67,18 @@ export const UI: Record<Locale, UiStrings> = {
     },
   },
   en: {
-    siteTitle: 'Marcus Vinicius — Optical Bench',
+    siteTitle: 'Marcus Vinicius — computer vision',
     siteDescription:
       'Portfolio of Marcus Vinicius: computer vision, machine-learning engineering and software.',
     thesis: 'I build instruments for seeing.',
     intro:
-      'Computer-vision engineer. Each project below is a station on this optical bench.',
+      'Computer-vision engineer. Every machine on the bench is one of my projects — and its state comes from the real repository.',
     navLabel: 'Optical bench stations',
     yearLabel: 'Year',
     stackLabel: 'Stack',
     readLabel: 'Open station',
     repoLabel: 'Repository',
-    backLabel: 'Back to the optical bench',
+    backLabel: 'Back to the bench',
     specimenAlt: 'Stick figure standing in for the portrait',
     specimenCaption: 'Specimen — portrait pending',
     aboutHeading: 'About',
