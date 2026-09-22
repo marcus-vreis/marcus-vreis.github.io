@@ -2,7 +2,7 @@
 
 **Data:** 2026-08-06
 **Autor:** Marcus Vinicius (`marcus-vreis`)
-**Status:** Aprovado para planejamento
+**Status:** Substituída em 2026-09-22 por `2026-09-22-portfolio-bancada-design.md` (A Bancada). Mantida como registro.
 
 ---
 
