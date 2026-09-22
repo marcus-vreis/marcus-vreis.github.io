@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "check": "astro check",
-    "shots": "node scripts/screenshots.mjs"
+    "shots": "node scripts/screenshots.mjs",
+    "refresh:github": "node --experimental-strip-types scripts/refresh-github.ts"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.5",
