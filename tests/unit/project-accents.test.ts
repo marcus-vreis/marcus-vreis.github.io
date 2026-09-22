@@ -54,6 +54,17 @@ function readOrder(filePath: string): number {
   return Number(line[1]);
 }
 
+/** Lê um campo escalar simples do frontmatter, ou `null` se ausente. */
+function readScalar(filePath: string, key: string): string | null {
+  const raw = readFileSync(filePath, 'utf-8');
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+  if (!frontmatter) {
+    throw new Error(`Frontmatter não encontrado em ${filePath}`);
+  }
+  const line = new RegExp(`^${key}:\\s*['"]?([^'"\\r\\n]+?)['"]?\\s*$`, 'm').exec(frontmatter[1]);
+  return line ? line[1] : null;
+}
+
 function listSlugs(locale: Locale): string[] {
   return readdirSync(join(PROJECTS_DIR, locale))
     .filter((name) => name.endsWith('.mdx'))
@@ -107,6 +118,17 @@ describe('acentos por projeto atingem AA nos dois modos', () => {
         enOrder,
         `${slug}: en/${slug}.mdx tem order ${enOrder}, mas pt/${slug}.mdx tem order ${ptOrder}`,
       ).toBe(ptOrder);
+    });
+
+    it(`${slug}: PT e EN declaram os mesmos kind, status, github e character`, () => {
+      const keys = ['kind', 'status', 'github', 'character'] as const;
+      const pick = (path: string) => Object.fromEntries(keys.map((k) => [k, readScalar(path, k)]));
+      const pt = pick(join(PROJECTS_DIR, 'pt', `${slug}.mdx`));
+      const en = pick(join(PROJECTS_DIR, 'en', `${slug}.mdx`));
+      expect(
+        en,
+        `${slug}: en/${slug}.mdx (${JSON.stringify(en)}) diverge de pt/${slug}.mdx (${JSON.stringify(pt)})`,
+      ).toEqual(pt);
     });
   }
 

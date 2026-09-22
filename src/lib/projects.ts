@@ -1,5 +1,9 @@
 import type { Locale } from './i18n';
 
+/** `projeto` vira máquina no chão e linha no índice; `pesquisa` vai para o "Sobre". */
+export const KINDS = ['projeto', 'pesquisa'] as const;
+export type Kind = (typeof KINDS)[number];
+
 /** Extrai o slug de um id `<locale>/<slug>`, falhando alto se o formato mudar. */
 export function slugOf(id: string): string {
   const [locale, slug, ...rest] = id.split('/');

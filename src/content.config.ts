@@ -1,6 +1,8 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { KINDS } from './lib/projects';
+import { STATUSES } from './lib/mood';
 
 const projects = defineCollection({
   loader: glob({
@@ -29,6 +31,15 @@ const projects = defineCollection({
         accentLight: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
         /** Posição no trilho, crescente. */
         order: z.number().int().positive(),
+        /** `projeto` vira máquina e linha do índice; `pesquisa` vai para o "Sobre". */
+        kind: z.enum(KINDS),
+        /** O que o tempo parado significa — §5.3 da spec. Obrigatório em projeto. */
+        status: z.enum(STATUSES).optional(),
+        /** `owner/nome` no GitHub: a chave do instantâneo. Separado de `repo`,
+         *  que é link público e não existe em repositório privado. */
+        github: z.string().regex(/^[\w.-]+\/[\w.-]+$/).optional(),
+        /** Id do sprite da máquina que representa o projeto. */
+        character: z.string().regex(/^[a-z-]+$/).optional(),
         /** Ano ou intervalo, exibido como dado. */
         year: z.string(),
         /** Tecnologias exibidas como etiquetas. */
@@ -60,7 +71,17 @@ const projects = defineCollection({
         message:
           'detailImageAlt é obrigatório sempre que detailImage estiver definido — adicione detailImageAlt ao frontmatter deste MDX.',
         path: ['detailImageAlt'],
-      }),
+      })
+      .refine(
+        (data) =>
+          data.kind !== 'projeto' ||
+          (Boolean(data.status) && Boolean(data.github) && Boolean(data.character)),
+        {
+          message:
+            'Todo projeto (kind: projeto) precisa de status, github e character no frontmatter.',
+          path: ['kind'],
+        },
+      ),
 });
 
 export const collections = { projects };
