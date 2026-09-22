@@ -1,103 +1,62 @@
-# Optical Bench — Marcus Vinicius's portfolio
+# A Bancada — portfólio de Marcus Vinicius
 
-A bilingual portfolio built as an **optical bench**: every project is a *station*
-on a rail, and each one carries its own persona, accent colour and — as the
-project grows — its own behaviour.
+A bilingual portfolio where every project is a **small machine living on a
+bench**, and the state of each machine comes from its real GitHub repository.
 
-![The home page in dark mode: the rail across the top, the specimen slot, and the opening line](docs/images/home-dark.png)
+![The home page in dark mode](docs/images/home-dark.png)
 
-*(README in English on purpose: this repository is linked from the site, and the
-site is aimed at both Brazilian and international readers.)*
+*(README in English on purpose: this repository is linked from the site, which
+is aimed at both Brazilian and international readers.)*
+
+> **Status — under construction.** This is stage 3 of 7: the data pipeline,
+> the mood rules and the project index are live. The machines themselves (a
+> pixel-art floor in Canvas 2D), the in-place project panel and the hero's
+> light effect come next — see [Roadmap](#roadmap).
 
 ## The idea
 
-The through-line in my work is building **instruments for seeing** — VisionForge
-so a researcher can look at their own model without fooling themselves, ImageLab
-to expose the operation on the pixel, VampireAI to find out what a small local
-model can make of a game screen, and my master's research to make a detector see
-under domain shift.
+The projects become machines with a screen for a face: a floating lens for
+VisionForge, a weather station for AirWatch, a coffee maker for CoffeeBean, a
+ball launcher for VoleiArena. None of them is humanoid.
 
-So the site is an instrument too. Rather than dropping ten projects into ten
-identical cards, each station gets its own identity, and the plan is for each one
-to eventually run its own algorithm live on the page — a fog slider that decays
-detection boxes, a filter chain you can drag an image into, a distributed graph
-whose nodes you can kill.
+Each machine's **mood is computed from the repository**. A daily job reads the
+last commit (across *all* branches — `pushed_at` lies), the commits in the last
+90 days, the latest tag and the stars, and crosses that with a hand-written
+status:
 
-This repository is **stage one**: the bilingual foundation, the content layer and
-the design system. The WebGL layer and the per-project mechanics come next (see
-[Roadmap](#roadmap)).
-
-## Screenshots
-
-| Light mode | A station |
+| Mood | When |
 |---|---|
-| ![Home page in light mode; the amber accent darkens to stay readable on paper](docs/images/home-light.png) | ![The VisionForge station, its persona label in the project's own green](docs/images/station.png) |
+| graduated | the project is finished — university coursework, for instance |
+| full steam | active, 30 or more commits in 90 days |
+| active | active, fewer commits |
+| yawning / napping / asleep | paused, for under 90 / 90–180 / over 180 days |
 
-| A project page | English, and mobile |
-|---|---|
-| ![The master's research page, reporting the negative result in full](docs/images/project-page.png) | ![The rail at 390px, labels kept in the accessibility tree](docs/images/mobile.png) |
+Finished is not abandoned: a course project from 2024 *graduates*, it doesn't
+gather dust. And the data keeps the status honest — a project marked "active"
+with no commit in six months is treated as paused, and the build says so.
 
-## The opening
-
-The specimen doesn't fade in — it **resolves**. It starts as a raw Bayer sensor
-readout, where each block carries only one of red, green or blue in the RGGB
-pattern a real camera sensor uses, plus read noise. Over 1.4 seconds the blocks
-shrink to single pixels, the noise falls away and demosaicing fills in the
-missing channels. From pixels to a person.
-
-| Raw sensor | Resolving | Resolved |
-|---|---|---|
-| ![The specimen as a raw RGGB sensor mosaic](docs/images/hero-reveal-1.png) | ![The mosaic finer, colour fringing at the edges](docs/images/hero-reveal-2.png) | ![The finished image](docs/images/hero-reveal-3.png) |
-
-It's a hand-written WebGL2 layer — one full-screen quad, one fragment shader, no
-library — and it costs **7 kB** of JavaScript, fetched only when the browser can
-actually use it. Without WebGL2, or under `prefers-reduced-motion`, no canvas is
-created at all and the image is simply there.
-
-The portrait is a **stick figure on purpose** — the real photograph doesn't exist
-yet, so the slot ships at its final 4:5 crop with a placeholder standing in.
-Swapping it is a one-file change. It will also make the effect land harder: a
-bold line drawing survives block quantisation far better than skin tones and soft
-gradients do, so the real photo will be much less readable at the start.
-
-## Stack
-
-- **[Astro 7](https://astro.build)**, `output: 'static'` — plain HTML, and
-  currently **zero runtime JavaScript**
-- Project content as **MDX**, one file per project per language
-- Fonts self-hosted via `@fontsource` — Instrument Serif for display, Geist for
-  body, Geist Mono for anything numeric
-- **[Vitest](https://vitest.dev)** for unit tests, **[Playwright](https://playwright.dev)**
-  for end-to-end
+![The project index, each row saying the mood and the fact behind it](docs/images/index.png)
 
 ## A few things I'd point at
 
-**A missing translation fails the build.** `src/lib/parity.ts` compares the slug
-sets of both languages and throws, so the site can never publish half a
-translation. It also throws when the collection comes back *empty* — that sounds
-paranoid until you notice that a change in how content ids are generated would
-otherwise let the build succeed while publishing nothing at all.
+**The build never touches the network.** `npm run refresh:github` writes
+`src/data/github-snapshot.json`, which is committed. A GitHub Action refreshes
+it daily. The mood's "today" is the snapshot's date, never the clock, so any
+build is reproducible.
 
-**Colour contrast is a test, not a hope.** `src/lib/tokens.ts` is the single
-source of truth for the palette, and `tests/unit/tokens.test.ts` asserts WCAG AA
-on every pair in both modes. That test is why the site's amber has a second,
-darker value for light mode — `#F0A33C` scores 1.88 on paper.
+**A missing translation fails the build**, and so does an empty collection —
+which is what would happen, silently, if the content id format ever changed.
 
-The same idea covers the ten per-project accents, in
-`tests/unit/project-accents.test.ts`, which reads the MDX files off disk so it
-can never drift from what ships. Every accent is a **pair**: a colour picked
-against dark graphite almost never survives light mode. Nine of the original ten
-didn't.
-
-**Routing is one pure function.** `src/lib/i18n.ts` parses a path into a
-canonical route and rebuilds it in the target language, so the language toggle
-carries you from `/projeto/uda-ovd` to `/en/project/uda-ovd` without string
-surgery scattered across components.
+**Colour contrast is a test, not a hope.** Every accent is a *pair* — dark and
+light mode — and `tests/unit/project-accents.test.ts` reads the real content
+files to assert WCAG AA on each.
 
 **No display text lives in a component.** It's all in `src/lib/ui-strings.ts`
 or in MDX frontmatter.
 
-Current state: **95 unit tests, 5 end-to-end, 22 pages, Lighthouse 100/100/100.**
+| Light mode | English |
+|---|---|
+| ![Home in light mode — the hero stays a dark stage](docs/images/home-light.png) | ![Home in English](docs/images/home-en.png) |
 
 ## Commands
 
@@ -108,19 +67,19 @@ Current state: **95 unit tests, 5 end-to-end, 22 pages, Lighthouse 100/100/100.*
 | `npm run preview` | Serve the production build locally |
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:e2e` | End-to-end tests (Playwright) |
-| `npm run check` | Type-check, including `.astro` files |
+| `npm run check` | Type-check, including `.astro` files and tests |
+| `npm run refresh:github` | Refresh the GitHub snapshot (needs `GITHUB_TOKEN`) |
 | `npm run shots` | Regenerate the screenshots in this README |
 
 ## Roadmap
 
-- [x] **Stage 1 — bilingual foundation.** Content, routing, design tokens, rail,
-  stations, project pages, tests, CI.
-- [ ] **Stage 2 — the WebGL engine.** A hand-written WebGL2 canvas (one
-  full-screen quad, one fragment shader per station), crossfades driven by scroll
-  position, and static posters pre-rendered at build time from the same shaders
-  for `prefers-reduced-motion`.
-- [ ] **Stage 3 — the stations.** One shader and one interactive mechanic per
-  project, in order of value.
+- [x] **Stage 3 — data, mood and index.**
+- [ ] **Stage 4 — the floor.** Canvas 2D, Aseprite spritesheets, the first two
+  machines.
+- [ ] **Stage 5 — the panel.** Projects open in place; the URL still changes.
+- [ ] **Stage 6 — the hero.** Half photograph, half squares of light on the
+  same pixel grid as the machines.
+- [ ] **Stage 7 — the full cast** and the interactions between machines.
 
 See `CLAUDE.md` for the project's invariants, and `docs/superpowers/` for the
-design spec and implementation plans.
+spec and the implementation plans.
