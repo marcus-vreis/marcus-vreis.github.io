@@ -1,4 +1,5 @@
 import type { Locale } from './i18n';
+import type { Mood } from './mood';
 
 export interface UiStrings {
   siteTitle: string;
@@ -17,6 +18,11 @@ export interface UiStrings {
   aboutBody: string[];
   contactHeading: string;
   contact: { label: string; href: string }[];
+  name: string;
+  portraitAlt: string;
+  projectsHeading: string;
+  researchHeading: string;
+  moods: Record<Mood, string>;
 }
 
 export const UI: Record<Locale, UiStrings> = {
@@ -47,6 +53,18 @@ export const UI: Record<Locale, UiStrings> = {
       { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/' },
       { label: 'E-mail', href: 'mailto:marcusvinicius0083@gmail.com' },
     ],
+    name: 'Marcus Vinicius',
+    portraitAlt: 'Bonequinho de palito no lugar do retrato',
+    projectsHeading: 'Projetos',
+    researchHeading: 'Pesquisa',
+    moods: {
+      formado: 'formado',
+      'a-todo-vapor': 'a todo vapor',
+      ativo: 'ativo',
+      bocejando: 'bocejando',
+      cochilando: 'cochilando',
+      dormindo: 'dormindo',
+    },
   },
   en: {
     siteTitle: 'Marcus Vinicius — Optical Bench',
@@ -75,5 +93,17 @@ export const UI: Record<Locale, UiStrings> = {
       { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/' },
       { label: 'Email', href: 'mailto:marcusvinicius0083@gmail.com' },
     ],
+    name: 'Marcus Vinicius',
+    portraitAlt: 'Stick figure standing in for the portrait',
+    projectsHeading: 'Projects',
+    researchHeading: 'Research',
+    moods: {
+      formado: 'graduated',
+      'a-todo-vapor': 'full steam',
+      ativo: 'active',
+      bocejando: 'yawning',
+      cochilando: 'napping',
+      dormindo: 'asleep',
+    },
   },
 };
