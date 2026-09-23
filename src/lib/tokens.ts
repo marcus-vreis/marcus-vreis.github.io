@@ -8,9 +8,11 @@ export interface Palette {
   fg: string;
   /** Texto secundário e legendas. */
   muted: string;
-  /** Acento do site (âmbar de instrumento). Cada estação sobrescreve o seu. */
+  /** Acento do site (âmbar de instrumento). Cada projeto sobrescreve o seu
+   *  no frontmatter do MDX (`accent`/`accentLight`). */
   accent: string;
-  /** Filete decorativo do trilho. Não carrega informação. */
+  /** Filete decorativo usado como divisor entre linhas e seções. Não
+   *  carrega informação. */
   rule: string;
 }
 

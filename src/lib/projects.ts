@@ -13,7 +13,7 @@ export function slugOf(id: string): string {
   return slug;
 }
 
-/** Filtra as entradas de um idioma e ordena pela posição no trilho. */
+/** Filtra as entradas de um idioma e ordena pela ordem do conteúdo. */
 export function entriesFor<T extends { id: string; data: { order: number } }>(
   all: T[],
   locale: Locale,

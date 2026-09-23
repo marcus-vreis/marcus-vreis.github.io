@@ -21,9 +21,10 @@ const { title, description, locale } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {/* Marca provisória: a lente do banco óptico, no âmbar do site. Está aqui
-        porque sem nenhum ícone o navegador pede /favicon.ico e leva 404. É um
-        placeholder como o bonequinho do espécime — trocar o arquivo basta. */}
+    {/* Marca provisória: uma lente no âmbar do site. Está aqui porque sem
+        nenhum ícone o navegador pede /favicon.ico e leva 404. É um
+        placeholder como o bonequinho no lugar do retrato — trocar o
+        arquivo basta. */}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {/* O <link rel="canonical"> e os hreflang alternates para pt/en devem
         voltar aqui assim que um domínio real for definido em `site` no

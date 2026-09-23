@@ -1,7 +1,11 @@
 # O que falta capturar
 
-Guia do que só você pode produzir. Oito das dez estações ainda não têm imagem, e
-é a diferença entre o site parecer um índice e parecer um portfólio.
+Guia do que só você pode produzir. O site não tem mais estações: cada projeto
+agora é uma máquina no chão, mais um painel que abre no lugar. As capturas
+listadas aqui continuam sendo exatamente o que os painéis dos projetos
+precisam — capas e vídeos —, e o aviso sobre o `Metodologia.png` mais abaixo
+continua valendo. Oito dos dez projetos ainda não têm imagem, e é a diferença
+entre o site parecer um índice e parecer um portfólio.
 
 ## Antes de tudo: sobre gerar com IA
 

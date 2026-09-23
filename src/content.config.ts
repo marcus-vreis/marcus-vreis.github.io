@@ -15,18 +15,19 @@ const projects = defineCollection({
   schema: ({ image }) =>
     z
       .object({
-        /** Nome do projeto como aparece no título da estação. */
+        /** Nome do projeto como aparece no título da página do projeto. */
         title: z.string(),
-        /** O apelido da estação: "O Instrumento", "O Nevoeiro". */
+        /** O apelido da máquina, exibido acima do título na página do
+         *  projeto: "O Instrumento", "O Nevoeiro". */
         persona: z.string(),
         /** Uma linha que resume o projeto. */
         tagline: z.string(),
-        /** Cor de acento da estação no modo escuro, hex de 6 dígitos. */
+        /** Cor de acento do projeto no modo escuro, hex de 6 dígitos. */
         accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
         /** Acento no modo claro. Separado porque uma cor que passa AA sobre
          *  grafite quase nunca passa sobre papel. */
         accentLight: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-        /** Posição no trilho, crescente. */
+        /** Ordem de exibição do projeto no índice, crescente. */
         order: z.number().int().positive(),
         /** `projeto` vira máquina e linha do índice; `pesquisa` vai para o "Sobre". */
         kind: z.enum(KINDS),
@@ -44,16 +45,16 @@ const projects = defineCollection({
         /** Links externos. Ausente quando o repositório é privado. */
         repo: z.string().url().optional(),
         links: z.array(z.object({ label: z.string(), href: z.string().url() })).default([]),
-        /** Capa da estação. Opcional — a maioria dos projetos ainda não tem
+        /** Capa do projeto. Opcional — a maioria dos projetos ainda não tem
          *  uma imagem utilizável. Validada e otimizada pelo pipeline de
          *  assets do Astro. */
         cover: image().optional(),
         /** Texto alternativo da capa. Obrigatório sempre que `cover`
          *  estiver presente — ver `.refine` abaixo. */
         coverAlt: z.string().optional(),
-        /** Segunda imagem opcional, renderizada mais abaixo na página
-         *  profunda do projeto (depois da prosa). Genérico: qualquer
-         *  projeto pode usá-lo, não só o que tem hoje. */
+        /** Segunda imagem opcional, renderizada mais abaixo na página do
+         *  projeto (depois da prosa). Genérico: qualquer projeto pode
+         *  usá-lo, não só o que tem hoje. */
         detailImage: image().optional(),
         /** Texto alternativo da segunda imagem. Obrigatório sempre que
          *  `detailImage` estiver presente. */
