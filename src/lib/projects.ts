@@ -1,5 +1,9 @@
 import type { Locale } from './i18n';
 
+/** `projeto` vira máquina no chão e linha no índice; `pesquisa` vai para o "Sobre". */
+export const KINDS = ['projeto', 'pesquisa'] as const;
+export type Kind = (typeof KINDS)[number];
+
 /** Extrai o slug de um id `<locale>/<slug>`, falhando alto se o formato mudar. */
 export function slugOf(id: string): string {
   const [locale, slug, ...rest] = id.split('/');
@@ -9,7 +13,7 @@ export function slugOf(id: string): string {
   return slug;
 }
 
-/** Filtra as entradas de um idioma e ordena pela posição no trilho. */
+/** Filtra as entradas de um idioma e ordena pela ordem do conteúdo. */
 export function entriesFor<T extends { id: string; data: { order: number } }>(
   all: T[],
   locale: Locale,

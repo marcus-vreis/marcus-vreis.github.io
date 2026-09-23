@@ -1,6 +1,8 @@
 // Contexto WebGL2, quad em tela cheia, um par de shaders, uniforms. Não sabe
 // nada sobre Bayer nem sobre o site — recebe um canvas, o fragment shader e a
-// imagem, devolve um handle ou `null` se o navegador não conseguir.
+// imagem, devolve um handle ou `null` se o navegador não conseguir. Mantido
+// para os motores de chão/hero de planos futuros; nenhum componente o usa
+// hoje.
 
 import quadVertexSource from '../../shaders/quad.vert?raw';
 
@@ -18,7 +20,7 @@ export interface DrawUniforms {
   pointer?: [number, number];
   /** Cor de acento do projeto, já normalizada 0..1 por canal. */
   accent?: [number, number, number];
-  /** Progresso 0→1 de entrada da estação na viewport. */
+  /** Progresso 0→1 de entrada do elemento na viewport. */
   enter?: number;
 }
 

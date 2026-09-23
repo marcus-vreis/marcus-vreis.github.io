@@ -1,6 +1,8 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { KINDS } from './lib/projects';
+import { STATUSES } from './lib/mood';
 
 const projects = defineCollection({
   loader: glob({
@@ -13,22 +15,29 @@ const projects = defineCollection({
   schema: ({ image }) =>
     z
       .object({
-        /** Nome do projeto como aparece no título da estação. */
+        /** Nome do projeto como aparece no título da página do projeto. */
         title: z.string(),
-        /** Rótulo curto para o trilho, quando o título é longo demais para
-         *  caber nele. Ausente na maioria dos projetos — cai para `title`. */
-        railLabel: z.string().optional(),
-        /** O apelido da estação: "O Instrumento", "O Nevoeiro". */
+        /** O apelido da máquina, exibido acima do título na página do
+         *  projeto: "O Instrumento", "O Nevoeiro". */
         persona: z.string(),
         /** Uma linha que resume o projeto. */
         tagline: z.string(),
-        /** Cor de acento da estação no modo escuro, hex de 6 dígitos. */
+        /** Cor de acento do projeto no modo escuro, hex de 6 dígitos. */
         accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
         /** Acento no modo claro. Separado porque uma cor que passa AA sobre
          *  grafite quase nunca passa sobre papel. */
         accentLight: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-        /** Posição no trilho, crescente. */
+        /** Ordem de exibição do projeto no índice, crescente. */
         order: z.number().int().positive(),
+        /** `projeto` vira máquina e linha do índice; `pesquisa` vai para o "Sobre". */
+        kind: z.enum(KINDS),
+        /** O que o tempo parado significa — §5.3 da spec. Obrigatório em projeto. */
+        status: z.enum(STATUSES).optional(),
+        /** `owner/nome` no GitHub: a chave do instantâneo. Separado de `repo`,
+         *  que é link público e não existe em repositório privado. */
+        github: z.string().regex(/^[\w.-]+\/[\w.-]+$/).optional(),
+        /** Id do sprite da máquina que representa o projeto. */
+        character: z.string().regex(/^[a-z-]+$/).optional(),
         /** Ano ou intervalo, exibido como dado. */
         year: z.string(),
         /** Tecnologias exibidas como etiquetas. */
@@ -36,16 +45,16 @@ const projects = defineCollection({
         /** Links externos. Ausente quando o repositório é privado. */
         repo: z.string().url().optional(),
         links: z.array(z.object({ label: z.string(), href: z.string().url() })).default([]),
-        /** Capa da estação. Opcional — a maioria dos projetos ainda não tem
+        /** Capa do projeto. Opcional — a maioria dos projetos ainda não tem
          *  uma imagem utilizável. Validada e otimizada pelo pipeline de
          *  assets do Astro. */
         cover: image().optional(),
         /** Texto alternativo da capa. Obrigatório sempre que `cover`
          *  estiver presente — ver `.refine` abaixo. */
         coverAlt: z.string().optional(),
-        /** Segunda imagem opcional, renderizada mais abaixo na página
-         *  profunda do projeto (depois da prosa). Genérico: qualquer
-         *  projeto pode usá-lo, não só o que tem hoje. */
+        /** Segunda imagem opcional, renderizada mais abaixo na página do
+         *  projeto (depois da prosa). Genérico: qualquer projeto pode
+         *  usá-lo, não só o que tem hoje. */
         detailImage: image().optional(),
         /** Texto alternativo da segunda imagem. Obrigatório sempre que
          *  `detailImage` estiver presente. */
@@ -60,7 +69,17 @@ const projects = defineCollection({
         message:
           'detailImageAlt é obrigatório sempre que detailImage estiver definido — adicione detailImageAlt ao frontmatter deste MDX.',
         path: ['detailImageAlt'],
-      }),
+      })
+      .refine(
+        (data) =>
+          data.kind !== 'projeto' ||
+          (Boolean(data.status) && Boolean(data.github) && Boolean(data.character)),
+        {
+          message:
+            'Todo projeto (kind: projeto) precisa de status, github e character no frontmatter.',
+          path: ['kind'],
+        },
+      ),
 });
 
 export const collections = { projects };
