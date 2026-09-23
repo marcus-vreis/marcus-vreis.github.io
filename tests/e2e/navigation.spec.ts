@@ -28,6 +28,7 @@ test('cada linha diz o humor em palavras e o dado que o justifica', async ({ pag
     expect(MOODS).toContain(await row.getAttribute('data-mood'));
     await expect(row.locator('.mood')).not.toBeEmpty();
     await expect(row.locator('.detail')).not.toBeEmpty();
+    await expect(row.locator('.detail')).toContainText('último commit');
   }
 });
 

@@ -27,7 +27,7 @@ export interface IndexRow {
   accentLight: string;
   mood: Mood;
   moodLabel: string;
-  /** "há 24 dias · v0.10.0" */
+  /** "último commit há 24 dias · v0.10.0" */
   detail: string;
 }
 
@@ -71,7 +71,9 @@ export function buildIndexRows(
         accentLight: entry.data.accentLight,
         mood: result.mood,
         moodLabel: t.moods[result.mood],
-        detail: result.versionBadge ? `${since} · ${result.versionBadge}` : since,
+        detail: result.versionBadge
+          ? `${t.lastCommitLabel} ${since} · ${result.versionBadge}`
+          : `${t.lastCommitLabel} ${since}`,
       };
     });
 

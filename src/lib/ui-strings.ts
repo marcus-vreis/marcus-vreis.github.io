@@ -10,6 +10,7 @@ export interface UiStrings {
   stackLabel: string;
   repoLabel: string;
   backLabel: string;
+  lastCommitLabel: string;
   aboutHeading: string;
   aboutBody: string[];
   contactHeading: string;
@@ -33,6 +34,7 @@ export const UI: Record<Locale, UiStrings> = {
     stackLabel: 'Stack',
     repoLabel: 'Repositório',
     backLabel: 'Voltar para a bancada',
+    lastCommitLabel: 'último commit',
     aboutHeading: 'Sobre',
     aboutBody: [
       'Engenheiro de visão computacional na Pix Force, onde trabalho com inferência em produção, streaming de vídeo e GPU.',
@@ -69,6 +71,7 @@ export const UI: Record<Locale, UiStrings> = {
     stackLabel: 'Stack',
     repoLabel: 'Repository',
     backLabel: 'Back to the bench',
+    lastCommitLabel: 'last commit',
     aboutHeading: 'About',
     aboutBody: [
       'Computer-vision engineer at Pix Force, working on production inference, video streaming and GPU workloads.',

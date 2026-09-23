@@ -54,13 +54,13 @@ describe('buildIndexRows', () => {
   });
 
   it('o detalhe junta tempo e versão', () => {
-    expect(buildIndexRows(all, snapshot, 'pt').rows[0].detail).toBe('há 24 dias · v0.10.0');
+    expect(buildIndexRows(all, snapshot, 'pt').rows[0].detail).toBe('último commit há 24 dias · v0.10.0');
   });
 
   it('sem versão, o detalhe é só o tempo', () => {
     const knn = buildIndexRows(all, snapshot, 'pt').rows[1];
     expect(knn.mood).toBe('formado');
-    expect(knn.detail).toBe('há 22 meses');
+    expect(knn.detail).toBe('último commit há 22 meses');
   });
 
   it('avisa quando um projeto "ativo" está parado', () => {
