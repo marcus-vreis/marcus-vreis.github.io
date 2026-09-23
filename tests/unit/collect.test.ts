@@ -10,7 +10,10 @@ function result(overrides: Partial<RepoQueryResult> = {}): RepoQueryResult {
   return {
     stargazerCount: 0,
     defaultBranchRef: { target: { history: { totalCount: 0 } } },
-    refs: { nodes: [{ name: 'main', target: { committedDate: '2026-06-12T09:00:00Z' } }] },
+    refs: {
+      nodes: [{ name: 'main', target: { committedDate: '2026-06-12T09:00:00Z' } }],
+      pageInfo: { hasNextPage: false },
+    },
     tags: { nodes: [] },
     ...overrides,
   };
@@ -38,6 +41,7 @@ describe('toRepoSnapshot', () => {
             { name: 'main', target: { committedDate: '2026-06-12T09:00:00Z' } },
             { name: 'sensor-deterministico', target: { committedDate: '2026-09-02T18:30:00Z' } },
           ],
+          pageInfo: { hasNextPage: false },
         },
       }),
     );
@@ -53,6 +57,7 @@ describe('toRepoSnapshot', () => {
             { name: 'estranha', target: {} },
             { name: 'main', target: { committedDate: '2026-06-12T09:00:00Z' } },
           ],
+          pageInfo: { hasNextPage: false },
         },
       }),
     );
@@ -60,7 +65,15 @@ describe('toRepoSnapshot', () => {
   });
 
   it('falha alto quando nenhuma branch tem commit', () => {
-    expect(() => toRepoSnapshot('o/vazio', result({ refs: { nodes: [] } }))).toThrow('o/vazio');
+    expect(() =>
+      toRepoSnapshot('o/vazio', result({ refs: { nodes: [], pageInfo: { hasNextPage: false } } })),
+    ).toThrow('o/vazio');
+  });
+
+  it('falha alto quando há mais de 100 branches', () => {
+    expect(() =>
+      toRepoSnapshot('o/r', result({ refs: { nodes: [], pageInfo: { hasNextPage: true } } })),
+    ).toThrow('mais de 100 branches');
   });
 
   it('conta commits da branch padrão', () => {

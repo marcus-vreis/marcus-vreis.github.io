@@ -1,11 +1,12 @@
 import type { RepoSnapshot } from './snapshot';
 
 /** Uma consulta por repositório traz tudo que o instantâneo precisa. */
-export const REPO_QUERY = `query($owner: String!, $name: String!, $since: GitTimestamp!) {
+export const REPO_QUERY = `query($owner: String!, $name: String!, $since: GitTimestamp!, $until: GitTimestamp!) {
   repository(owner: $owner, name: $name) {
     stargazerCount
-    defaultBranchRef { target { ... on Commit { history(since: $since) { totalCount } } } }
+    defaultBranchRef { target { ... on Commit { history(since: $since, until: $until) { totalCount } } } }
     refs(refPrefix: "refs/heads/", first: 100) {
+      pageInfo { hasNextPage }
       nodes { name target { ... on Commit { committedDate } } }
     }
     tags: refs(refPrefix: "refs/tags/", first: 1, orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
@@ -18,7 +19,7 @@ export const REPO_QUERY = `query($owner: String!, $name: String!, $since: GitTim
 export interface RepoQueryResult {
   stargazerCount: number;
   defaultBranchRef: { target: { history?: { totalCount: number } } } | null;
-  refs: { nodes: { name: string; target: { committedDate?: string } }[] };
+  refs: { nodes: { name: string; target: { committedDate?: string } }[]; pageInfo: { hasNextPage: boolean } };
   tags: { nodes: { name: string }[] };
 }
 
@@ -43,6 +44,9 @@ export function windowStart(generatedAt: string): string {
  * setembro numa branch de trabalho.
  */
 export function toRepoSnapshot(repo: string, data: RepoQueryResult): RepoSnapshot {
+  if (data.refs.pageInfo.hasNextPage) {
+    throw new Error(`${repo}: mais de 100 branches — a consulta precisa de paginação.`);
+  }
   const dates = data.refs.nodes
     .map((node) => node.target.committedDate)
     .filter((date): date is string => typeof date === 'string');

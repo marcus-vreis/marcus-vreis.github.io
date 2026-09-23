@@ -33,7 +33,7 @@ function reposFromContent(): string[] {
   return [...new Set(repos)].sort();
 }
 
-async function fetchRepo(repo: string, since: string): Promise<RepoQueryResult> {
+async function fetchRepo(repo: string, since: string, until: string): Promise<RepoQueryResult> {
   const [owner, name] = repo.split('/');
   const response = await fetch('https://api.github.com/graphql', {
     method: 'POST',
@@ -42,7 +42,8 @@ async function fetchRepo(repo: string, since: string): Promise<RepoQueryResult> 
       'Content-Type': 'application/json',
       'User-Agent': 'portfolio-refresh-github',
     },
-    body: JSON.stringify({ query: REPO_QUERY, variables: { owner, name, since } }),
+    body: JSON.stringify({ query: REPO_QUERY, variables: { owner, name, since, until } }),
+    signal: AbortSignal.timeout(30_000),
   });
   if (!response.ok) throw new Error(`${repo}: HTTP ${response.status}`);
   const json = (await response.json()) as {
@@ -61,7 +62,7 @@ const since = windowStart(generatedAt);
 const repos: Record<string, RepoSnapshot> = {};
 
 for (const repo of reposFromContent()) {
-  const snap = toRepoSnapshot(repo, await fetchRepo(repo, since));
+  const snap = toRepoSnapshot(repo, await fetchRepo(repo, since, generatedAt));
   repos[repo] = snap;
   console.log(`ok ${repo}  ${snap.lastCommitAt.slice(0, 10)}  ${snap.commits90d} commits/90d`);
 }
