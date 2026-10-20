@@ -1,58 +1,62 @@
-# A Bancada — portfólio de Marcus Vinicius
+# Caderno de Engenharia & Instrumentos — Marcus Vinicius
 
-A bilingual portfolio where every project is a **small machine living on a
-bench**, and the state of each machine comes from its real GitHub repository.
+A bilingual (PT/EN) engineering notebook and portfolio where every public
+repository is presented with its **architectural schematic, mathematical seam,
+design invariant, and live telemetry from GitHub**.
 
 ![The home page in dark mode](docs/images/home-dark.png)
 
 *(README in English on purpose: this repository is linked from the site, which
 is aimed at both Brazilian and international readers.)*
 
-> **Status — under construction.** This is stage 3 of 7: the data pipeline,
-> the mood rules and the project index are live. The machines themselves (a
-> pixel-art floor in Canvas 2D), the in-place project panel and the hero's
-> light effect come next — see [Roadmap](#roadmap).
+## The design
 
-## The idea
+Instead of generic project cards or placeholder illustrations, each project is
+documented like an **instrument specification sheet**:
 
-The projects become machines with a screen for a face: a floating lens for
-VisionForge, a weather station for AirWatch, a coffee maker for CoffeeBean, a
-ball launcher for VoleiArena. None of them is humanoid.
-
-Each machine's **mood is computed from the repository**. A daily job reads the
-last commit (across *all* branches — `pushed_at` lies), the commits in the last
-90 days, the latest tag and the stars, and crosses that with a hand-written
-status:
+1. **Vector Architectural Schematics (`src/components/Schematic.astro`)**: Every
+   project renders a custom SVG blueprint of its actual internal pipeline —
+   VisionForge's multi-seed bootstrap confidence intervals and `run.json`
+   contract, `custody-watch`'s strict pixel-to-metre homography seam,
+   VampireAI's ADR-022 split between 3.3 ms NumPy geometry and local 7B VLM
+   semantics, AirWatch's dual RabbitMQ queues, ImageLab's spatial/FFT signal
+   chain, CoffeeBean's CLAHE + Wavelet CNN ensemble, KNN's MPEG7 descriptor
+   boundary, Sorting-Hub's empirical $N = 10 \dots 10^6$ pivot curves, and the
+   UFSCar Master's research on filtering ceilings vs. open-vocabulary
+   pseudo-label completion.
+2. **Hero Calibration & Telemetry Console (`src/components/Hero.astro`)**:
+   Displays live repository telemetry aggregated from the committed GitHub
+   snapshot alongside an interactive switcher for the three core engineering
+   seams (*Geometry vs. Semantics*, *Provenance & Refusal*, *Domain Shift*).
+3. **Computed Operational Mood (`src/lib/mood.ts`)**: A daily job reads the
+   latest commit across all branches, 90-day commit activity, release tags and
+   stars, and crosses that with each project's status:
 
 | Mood | When |
 |---|---|
-| graduated | the project is finished — university coursework, for instance |
+| graduated | the project is finished — university coursework or published study |
 | full steam | active, 30 or more commits in 90 days |
 | active | active, fewer commits |
 | yawning / napping / asleep | paused, for under 90 / 90–180 / over 180 days |
 
-Finished is not abandoned: a course project from 2024 *graduates*, it doesn't
-gather dust. And the data keeps the status honest — a project marked "active"
-with no commit in six months is treated as paused, and the build says so.
+![The instrument dossiers with schematics and live GitHub telemetry](docs/images/index.png)
 
-![The project index, each row saying the mood and the fact behind it](docs/images/index.png)
-
-## A few things I'd point at
+## Architectural invariants
 
 **The build never touches the network.** `npm run refresh:github` writes
 `src/data/github-snapshot.json`, which is committed. A GitHub Action refreshes
-it daily. The mood's "today" is the snapshot's date, never the clock, so any
-build is reproducible.
+it daily. The mood's "today" is the snapshot's date, never the system clock, so
+every build is reproducible.
 
-**A missing translation fails the build**, and so does an empty collection —
-which is what would happen, silently, if the content id format ever changed.
+**Parity and contrast are enforced by tests.** Missing translations or
+frontmatter drift between PT and EN fail the build (`src/lib/parity.ts`,
+`tests/unit/project-accents.test.ts`), and every project's dark/light accent
+pair is verified against WCAG AA (4.5:1) directly from the real MDX files.
 
-**Colour contrast is a test, not a hope.** Every accent is a *pair* — dark and
-light mode — and `tests/unit/project-accents.test.ts` reads the real content
-files to assert WCAG AA on each.
-
-**No display text lives in a component.** It's all in `src/lib/ui-strings.ts`
-or in MDX frontmatter.
+**No display text or hex colour lives in a component.** All copy, schematic
+labels, publications, awards and trajectory entries live in
+`src/lib/ui-strings.ts` or MDX frontmatter; all colours flow from
+`src/lib/tokens.ts` or per-project MDX accents.
 
 | Light mode | English |
 |---|---|
@@ -71,15 +75,4 @@ or in MDX frontmatter.
 | `npm run refresh:github` | Refresh the GitHub snapshot (needs `GITHUB_TOKEN`) |
 | `npm run shots` | Regenerate the screenshots in this README |
 
-## Roadmap
-
-- [x] **Stage 3 — data, mood and index.**
-- [ ] **Stage 4 — the floor.** Canvas 2D, Aseprite spritesheets, the first two
-  machines.
-- [ ] **Stage 5 — the panel.** Projects open in place; the URL still changes.
-- [ ] **Stage 6 — the hero.** Half photograph, half squares of light on the
-  same pixel grid as the machines.
-- [ ] **Stage 7 — the full cast** and the interactions between machines.
-
-See `CLAUDE.md` for the project's invariants, and `docs/superpowers/` for the
-spec and the implementation plans.
+See `CLAUDE.md` for the full list of project invariants.
