@@ -2,8 +2,14 @@ import { expect, test } from '@playwright/test';
 import { PALETTE } from '../../src/lib/tokens';
 
 const PROJECTS = [
-  'visionforge', 'vampireai', 'airwatch', 'imagelab', 'coffeebean',
-  'cv-knn', 'sorting-hub', 'voleiarena', 'rvh-construtora',
+  'visionforge',
+  'custody-watch',
+  'vampireai',
+  'airwatch',
+  'imagelab',
+  'coffeebean',
+  'cv-knn',
+  'sorting-hub',
 ];
 const MOODS = ['formado', 'a-todo-vapor', 'ativo', 'bocejando', 'cochilando', 'dormindo'];
 
@@ -12,7 +18,7 @@ function hexToRgb(hex: string): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-test('o índice lista os nove projetos na ordem do conteúdo', async ({ page }) => {
+test('o índice lista os oito projetos públicos na ordem do conteúdo', async ({ page }) => {
   await page.goto('/');
   const slugs = await page
     .locator('#projetos a[data-slug]')
@@ -22,27 +28,30 @@ test('o índice lista os nove projetos na ordem do conteúdo', async ({ page }) 
 
 // O humor exato muda com os dados de cada dia; o teste verifica a forma,
 // e a regra fica coberta pelos testes de unidade de mood.ts.
-test('cada linha diz o humor em palavras e o dado que o justifica', async ({ page }) => {
+test('cada ficha diz o humor em palavras, o dado que o justifica e traz esquemático', async ({ page }) => {
   await page.goto('/');
   for (const row of await page.locator('#projetos a[data-slug]').all()) {
     expect(MOODS).toContain(await row.getAttribute('data-mood'));
     await expect(row.locator('.mood')).not.toBeEmpty();
     await expect(row.locator('.detail')).not.toBeEmpty();
     await expect(row.locator('.detail')).toContainText('último commit');
+    await expect(row.locator('.schematic svg')).toHaveCount(1);
   }
 });
 
-test('a pesquisa de mestrado fica no Sobre, não no índice', async ({ page }) => {
+test('a pesquisa de mestrado e as publicações ficam no Sobre, não no índice', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#projetos a[data-slug="uda-ovd"]')).toHaveCount(0);
   await expect(page.locator('#sobre a[href="/projeto/uda-ovd"]')).toHaveCount(1);
+  await expect(page.locator('#publicacoes .pub-card')).toHaveCount(4);
 });
 
-test('uma linha do índice leva ao projeto', async ({ page }) => {
+test('uma ficha do índice leva à especificação técnica do projeto', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#projetos a[data-slug="visionforge"]').click();
-  await expect(page).toHaveURL(/\/projeto\/visionforge\/?$/);
-  await expect(page.locator('h1')).toHaveText('VisionForge');
+  await page.locator('#projetos a[data-slug="custody-watch"]').click();
+  await expect(page).toHaveURL(/\/projeto\/custody-watch\/?$/);
+  await expect(page.locator('h1')).toHaveText('custody-watch');
+  await expect(page.locator('.schematic svg')).toHaveCount(1);
 });
 
 test('o seletor de idioma preserva o projeto aberto', async ({ page }) => {

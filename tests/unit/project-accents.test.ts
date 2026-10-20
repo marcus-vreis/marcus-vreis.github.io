@@ -133,7 +133,7 @@ describe('acentos por projeto atingem AA nos dois modos', () => {
   }
 
   for (const locale of LOCALES) {
-    it(`${locale}: os dez valores de order são exatamente 1..10, sem duplicatas`, () => {
+    it(`${locale}: os valores de order formam 1..N sem duplicatas`, () => {
       const slugs = listSlugs(locale);
       const entries = slugs.map((slug) => ({
         slug,
