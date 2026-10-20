@@ -1,10 +1,25 @@
 ---
+import { Image } from 'astro:assets';
+import portrait from '../assets/portrait.jpg';
+import Schematic from './Schematic.astro';
 import type { Locale } from '../lib/i18n';
-import { UI } from '../lib/ui-strings';
+import { UI, type CharacterId } from '../lib/ui-strings';
+
+export interface ResearchItem {
+  title: string;
+  persona: string;
+  tagline: string;
+  accent: string;
+  accentLight: string;
+  character: CharacterId;
+  year: string;
+  stack: string[];
+  href: string;
+}
 
 interface Props {
   locale: Locale;
-  research: { title: string; tagline: string; href: string }[];
+  research: ResearchItem[];
 }
 
 const { locale, research } = Astro.props;
@@ -12,79 +27,891 @@ const t = UI[locale];
 ---
 
 <section id="sobre" aria-labelledby="sobre-title">
-  <h2 id="sobre-title">{t.aboutHeading}</h2>
-  {t.aboutBody.map((paragraph) => <p>{paragraph}</p>)}
-
   {research.length > 0 && (
-    <>
-      <h3>{t.researchHeading}</h3>
+    <div id="pesquisa" class="block">
+      <div class="block-header">
+        <h3>{t.researchHeading}</h3>
+        <p class="block-subtitle">{t.researchSubtitle}</p>
+      </div>
+
       <ul class="research">
-        {research.map((item) => (
-          <li>
-            <a href={item.href}>{item.title}</a>
-            <span>{item.tagline}</span>
-          </li>
-        ))}
+        {research.map((item) => {
+          const spec = t.schematics[item.character];
+          return (
+            <li style={`--accent: light-dark(${item.accentLight}, ${item.accent})`}>
+              <a class="research-card" href={item.href}>
+                <div class="research-topbar tabular">
+                  <div class="research-id">
+                    <span class="persona">{item.persona}</span>
+                    <span class="year">{item.year}</span>
+                  </div>
+                  <span class="inspect-cta" aria-hidden="true">{t.inspectLabel} →</span>
+                </div>
+
+                <div class="research-body">
+                  <div class="research-main">
+                    <span class="research-title">{item.title}</span>
+                    <span class="research-tagline">{item.tagline}</span>
+                    <p class="invariant">
+                      <strong class="tabular">{t.invariantLabel}:</strong> {spec.invariant}
+                    </p>
+                    {item.stack.length > 0 && (
+                      <ul class="stack tabular" aria-label={t.stackLabel}>
+                        {item.stack.map((tech) => (
+                          <li>{tech}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div class="research-diagram">
+                    <Schematic character={item.character} locale={locale} variant="card" />
+                  </div>
+                </div>
+              </a>
+            </li>
+          );
+        })}
       </ul>
-    </>
+    </div>
   )}
 
-  <h3>{t.contactHeading}</h3>
-  <ul class="contact">
-    {t.contact.map((c) => <li><a href={c.href}>{c.label}</a></li>)}
-  </ul>
+  <div id="publicacoes" class="block">
+    <div class="block-header">
+      <h3>{t.publicationsHeading}</h3>
+      <p class="block-subtitle">{t.publicationsSubtitle}</p>
+    </div>
+
+    <ol class="pub-grid">
+      {t.publications.map((pub) => (
+        <li class="pub-card">
+          <div class="pub-meta tabular">
+            <span class="pub-year">{pub.year}</span>
+            <span class="pub-badge">{pub.badge}</span>
+          </div>
+          <h4 class="pub-title">{pub.title}</h4>
+          <p class="pub-authors tabular">{pub.authors}</p>
+          <p class="pub-venue">{pub.venue}</p>
+          <p class="pub-note">{pub.note}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <div class="block">
+    <div class="block-header">
+      <h2 id="sobre-title">{t.aboutHeading}</h2>
+      <p class="block-subtitle">{t.aboutSubtitle}</p>
+    </div>
+
+    <div class="indicators-block" aria-label={t.indicatorsHeading}>
+      <dl class="indicators-grid">
+        {t.indicators.map((ind) => (
+          <div class="indicator-card">
+            <dt class="indicator-label tabular">{ind.label}</dt>
+            <dd class="indicator-value tabular">{ind.value}</dd>
+            <p class="indicator-detail">{ind.detail}</p>
+          </div>
+        ))}
+      </dl>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-col">
+        <div class="lattes-quote-box">
+          <span class="lattes-quote-label tabular">{t.lattesSummaryHeading}</span>
+          <blockquote class="lattes-quote">“{t.lattesSummaryQuote}”</blockquote>
+        </div>
+
+        <div class="prose">
+          {t.aboutBody.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+      </div>
+
+      <div class="about-col">
+        <div class="dossier-card">
+          <div class="dossier-header">
+            <div class="dossier-photo">
+              <Image
+                src={portrait}
+                alt={t.authorPhotoAlt}
+                width={140}
+                height={140}
+                class="dossier-img"
+              />
+            </div>
+            <div class="dossier-title-wrap">
+              <h3 class="dossier-heading">{t.profileCardHeading}</h3>
+              <p class="dossier-citation tabular">{t.citationShort}</p>
+            </div>
+          </div>
+
+          <dl class="bio-list">
+            {t.bioFields.map((field) => (
+              <div class="bio-row">
+                <dt class="tabular">{field.label}</dt>
+                <dd>{field.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-col">
+        <h3 class="sub-heading">{t.experienceHeading}</h3>
+        <ol class="timeline">
+          {t.experience.map((item) => (
+            <li class="timeline-item">
+              <div class="timeline-top tabular">
+                <span class="timeline-period">{item.period}</span>
+                <span class="timeline-regime">{item.regime}</span>
+              </div>
+              <p class="timeline-role">{item.role}</p>
+              <p class="timeline-org tabular">{item.org}</p>
+              <p class="timeline-detail">{item.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="about-col">
+        <h3 class="sub-heading">{t.educationHeading}</h3>
+        <ol class="timeline">
+          {t.education.map((item) => (
+            <li class="timeline-item">
+              <div class="timeline-top tabular">
+                <span class="timeline-period">{item.period}</span>
+                <span class="timeline-regime">{item.regime}</span>
+              </div>
+              <p class="timeline-role">{item.role}</p>
+              <p class="timeline-org tabular">{item.org}</p>
+              <p class="timeline-detail">{item.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h3 class="sub-heading">{t.academicProjectsHeading}</h3>
+      <ol class="academic-projects-grid">
+        {t.academicProjects.map((proj) => (
+          <li class="academic-project-card">
+            <div class="pub-meta tabular">
+              <span class="pub-year">{proj.period}</span>
+              <span class="pub-badge">{proj.kind}</span>
+            </div>
+            <p class="proj-code tabular">{proj.code}</p>
+            <h4 class="pub-title">{proj.title}</h4>
+            <p class="pub-authors tabular">{proj.org}</p>
+            <p class="pub-venue">{proj.advisor}</p>
+            <p class="pub-note">{proj.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-col">
+        <h3 class="sub-heading">{t.awardsHeading}</h3>
+        <ul class="awards">
+          {t.awards.map((award) => (
+            <li class="award-item">
+              <span class="award-year tabular">{award.year}</span>
+              <div class="award-copy">
+                <span class="award-title">{award.title}</span>
+                <span class="award-venue">{award.venue}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <h3 class="sub-heading">{t.languagesHeading}</h3>
+        <ul class="languages-list">
+          {t.languages.map((lang) => (
+            <li class="language-item">
+              <div class="language-top tabular">
+                <span class="language-name">{lang.language}</span>
+                <span class="language-level">{lang.level}</span>
+              </div>
+              <p class="language-detail">{lang.detail}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="about-col">
+        <h3 class="sub-heading">{t.eventsHeading}</h3>
+        <ol class="events-list">
+          {t.events.map((ev) => (
+            <li class="event-item">
+              <div class="timeline-top tabular">
+                <span class="timeline-period">{ev.year}</span>
+                <span class="timeline-regime">{ev.kind}</span>
+              </div>
+              <p class="event-work">{ev.work}</p>
+              <p class="event-venue">{ev.event}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-col">
+        <h3 class="sub-heading">{t.skillsHeading}</h3>
+        <div class="skills-groups">
+          {t.skillGroups.map((group) => (
+            <div class="skill-group">
+              <h4 class="skill-category tabular">{group.category}</h4>
+              <ul class="stack tabular">
+                {group.items.map((skill) => (
+                  <li>{skill}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="about-col">
+        <h3 class="sub-heading">{t.contactHeading}</h3>
+        <ul class="contact-cards tabular">
+          {t.contact.map((c) => (
+            <li>
+              <a class="contact-card" href={c.href}>
+                <span class="contact-label">{c.label} ↗</span>
+                <span class="contact-value">{c.value}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
 </section>
 
 <style>
   section {
-    max-width: 72rem;
+    max-width: 76rem;
     margin-inline: auto;
-    padding: clamp(2.5rem, 2rem + 3vw, 5rem) 1.5rem;
+    padding: 0 1.5rem clamp(3.5rem, 2.5rem + 4vw, 6rem);
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: clamp(3rem, 2rem + 3vw, 4.75rem);
   }
 
-  section > * {
-    max-width: 46rem;
+  .block {
+    border-top: 1px solid var(--rule);
+    padding-top: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
   }
 
-  p {
-    color: var(--muted);
-    max-width: 36rem;
+  .block-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-width: 52rem;
   }
 
+  h2,
   h3 {
-    font-size: 1.5rem;
-    margin-top: 1rem;
+    font-size: clamp(1.85rem, 1.35rem + 1.8vw, 2.75rem);
   }
 
-  ul {
+  .sub-heading {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .sub-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .block-subtitle {
+    color: var(--muted);
+    font-size: 0.9375rem;
+  }
+
+  ul,
+  ol {
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
-  .research li {
+  .research-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 1.5%, var(--bg));
+    text-decoration: none;
+    transition: border-color 140ms ease, background-color 140ms ease;
+  }
+
+  .research-card:hover,
+  .research-card:focus-visible {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 4%, var(--bg));
+  }
+
+  .research-card:hover .research-title,
+  .research-card:focus-visible .research-title {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.18em;
+  }
+
+  .research-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+    font-size: 0.75rem;
+  }
+
+  .research-id {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .persona {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .year {
+    color: var(--muted);
+  }
+
+  .inspect-cta {
+    color: var(--muted);
+  }
+
+  .research-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.25rem;
+    align-items: start;
+  }
+
+  .research-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .research-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(1.65rem, 1.35rem + 1vw, 2.2rem);
+    line-height: 1.1;
+    color: var(--fg);
+  }
+
+  .research-tagline {
+    color: var(--fg);
+    font-size: 0.975rem;
+  }
+
+  .invariant {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--accent);
+  }
+
+  .invariant strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+  }
+
+  .stack li {
+    font-size: 0.6875rem;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+    color: var(--muted);
+  }
+
+  .pub-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem;
+  }
+
+  .academic-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.1rem;
+  }
+
+  .pub-card,
+  .academic-project-card {
+    border: 1px solid var(--rule);
+    padding: 1.2rem;
+    background: color-mix(in srgb, var(--fg) 1.5%, var(--bg));
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .pub-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .pub-year {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .pub-badge {
+    padding: 0.12rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--rule));
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+    color: var(--accent);
+    font-size: 0.6875rem;
+  }
+
+  .proj-code {
+    font-size: 0.6875rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .pub-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    color: var(--fg);
+  }
+
+  .pub-authors {
+    font-size: 0.75rem;
+    color: var(--fg);
+  }
+
+  .pub-venue {
+    font-size: 0.8125rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .pub-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+    line-height: 1.5;
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+    margin: 0;
+  }
+
+  .indicator-card {
+    padding: 1rem;
+    border-right: 1px solid var(--rule);
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
   }
 
-  .research span {
-    color: var(--muted);
-    font-size: 0.875rem;
+  .indicator-card:last-child {
+    border-right: 0;
   }
 
-  .contact {
+  .indicator-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  .indicator-value {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .indicator-detail {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+    align-items: start;
+  }
+
+  .about-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lattes-quote-box {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.15rem;
+    background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .lattes-quote-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .lattes-quote {
+    margin: 0;
+    color: var(--fg);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .prose {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .prose p {
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .dossier-card {
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 1.5%, var(--bg));
+  }
+
+  .dossier-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3.5%, var(--bg));
+  }
+
+  .dossier-photo {
+    width: 4.25rem;
+    height: 4.25rem;
+    flex-shrink: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--rule));
+    padding: 0.12rem;
+    background: var(--bg);
+  }
+
+  .dossier-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .dossier-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .dossier-heading {
+    font-size: 1.35rem;
+    color: var(--fg);
+  }
+
+  .dossier-citation {
+    font-size: 0.75rem;
+    color: var(--accent);
+  }
+
+  .bio-list {
+    margin: 0;
+    padding: 0.35rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bio-row {
+    padding: 0.55rem 0;
+    border-bottom: 1px dashed var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .bio-row:last-child {
+    border-bottom: 0;
+  }
+
+  .bio-row dt {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  .bio-row dd {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fg);
+    line-height: 1.45;
+  }
+
+  .timeline,
+  .events-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--rule);
+  }
+
+  .timeline-item,
+  .event-item {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .timeline-top {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .timeline-period {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .timeline-regime {
+    color: var(--muted);
+  }
+
+  .timeline-role,
+  .event-work {
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .timeline-org,
+  .event-venue {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .timeline-detail {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .awards,
+  .languages-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--rule);
+  }
+
+  .award-item {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+
+  .award-year {
+    color: var(--accent);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .award-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .award-title {
+    color: var(--fg);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .award-venue {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  .language-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .language-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.8125rem;
+  }
+
+  .language-name {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .language-level {
+    color: var(--accent);
+    font-size: 0.75rem;
+  }
+
+  .language-detail {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  .skills-groups {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
   }
 
-  a {
-    border-bottom: 1px solid var(--accent);
+  .skill-group {
+    border: 1px solid var(--rule);
+    padding: 0.9rem 1rem;
+    background: color-mix(in srgb, var(--fg) 1.5%, var(--bg));
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .skill-category {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .contact-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 2.5%, var(--bg));
     text-decoration: none;
-    align-self: start;
+    transition: border-color 140ms ease, color 140ms ease;
+  }
+
+  .contact-card:hover,
+  .contact-card:focus-visible {
+    border-color: var(--accent);
+  }
+
+  .contact-card:hover .contact-label,
+  .contact-card:focus-visible .contact-label {
+    color: var(--accent);
+  }
+
+  .contact-label {
+    font-size: 0.75rem;
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .contact-value {
+    font-size: 0.6875rem;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 68rem) {
+    .indicators-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .indicator-card {
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .academic-projects-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .research-body,
+    .pub-grid,
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .indicators-grid,
+    .contact-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .indicator-card {
+      border-right: 0;
+    }
   }
 </style>

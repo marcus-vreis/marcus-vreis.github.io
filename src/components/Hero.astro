@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import portrait from '../assets/portrait.jpg';
 import LocaleToggle from './LocaleToggle.astro';
 import type { Locale } from '../lib/i18n';
 import { UI } from '../lib/ui-strings';
@@ -6,89 +8,514 @@ import { UI } from '../lib/ui-strings';
 interface Props {
   locale: Locale;
   pathname: string;
+  snapshotDate: string;
+  totalCommits90d: number;
+  activeCount: number;
+  totalRepos: number;
+  latestRelease: string;
 }
 
-const { locale, pathname } = Astro.props;
+const {
+  locale,
+  pathname,
+  snapshotDate,
+  totalCommits90d,
+  activeCount,
+  totalRepos,
+  latestRelease,
+} = Astro.props;
 const t = UI[locale];
-
-// O bonequinho segura o lugar até a fotografia existir. O efeito de
-// quadrados de luz (Plano 6) entra por cima desta mesma imagem.
-const PORTRAIT_SRC = '/specimen/placeholder.svg';
 ---
 
 <header class="stage">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <span class="doc-badge tabular">{t.heroBadge}</span>
+      <div class="topbar-actions">
+        <nav class="section-nav tabular" aria-label={t.siteTitle}>
+          <a href="#projetos">{t.navProjects}</a>
+          <a href="#pesquisa">{t.navResearch}</a>
+          <a href="#publicacoes">{t.navPublications}</a>
+          <a href="#sobre">{t.navAbout}</a>
+        </nav>
+        <LocaleToggle current={locale} pathname={pathname} />
+      </div>
+    </div>
+  </div>
+
   <div class="inner">
     <div class="copy">
-      <LocaleToggle current={locale} pathname={pathname} />
-      <p class="name">{t.name}</p>
+      <div class="researcher-badge">
+        <div class="avatar-frame">
+          <Image
+            src={portrait}
+            alt={t.authorPhotoAlt}
+            width={160}
+            height={160}
+            class="avatar-img"
+            loading="eager"
+          />
+        </div>
+        <div class="identity tabular">
+          <div class="identity-top">
+            <p class="name">{t.fullName}</p>
+            <span class="citation">{t.citationShort}</span>
+          </div>
+          <span class="affiliation">{t.heroAffiliation}</span>
+          <span class="meta-line">{t.birthAndNationality} · {t.locationLabel}</span>
+        </div>
+      </div>
+
       <h1>{t.thesis}</h1>
       <p class="intro">{t.intro}</p>
+
+      <div class="hardware-box">
+        <div class="hardware-header tabular">
+          <span class="hardware-label">{t.hardwareHeading}</span>
+          <code class="hardware-spec">{t.hardwareSpec}</code>
+        </div>
+        <p class="hardware-detail">{t.hardwareDetail}</p>
+      </div>
     </div>
-    <figure class="portrait">
-      <img src={PORTRAIT_SRC} alt={t.portraitAlt} width="400" height="500" />
-    </figure>
+
+    <aside class="console" aria-label={t.portraitAlt}>
+      <div class="telemetry-panel">
+        <div class="panel-header tabular">
+          <span class="panel-title">{t.telemetryHeading}</span>
+          <span class="panel-stamp">{t.telemetrySnapshotLabel}: {snapshotDate}</span>
+        </div>
+        <dl class="telemetry-grid tabular">
+          <div class="stat">
+            <dt>{t.telemetryCommitsLabel}</dt>
+            <dd class="stat-accent">{totalCommits90d}</dd>
+          </div>
+          <div class="stat">
+            <dt>{t.telemetryActiveLabel}</dt>
+            <dd>{activeCount} / {totalRepos}</dd>
+          </div>
+          <div class="stat">
+            <dt>{t.telemetryReleaseLabel}</dt>
+            <dd>{latestRelease}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="pillars-panel" data-pillars>
+        <div class="panel-header tabular">
+          <span class="panel-title">{t.pillarsHeading}</span>
+          <div class="pillar-tabs" role="tablist" aria-label={t.pillarsHeading}>
+            {t.pillars.map((pillar, idx) => (
+              <button
+                type="button"
+                role="tab"
+                class="pillar-tab tabular"
+                aria-selected={idx === 0 ? 'true' : 'false'}
+                data-pillar-tab={pillar.id}
+              >
+                0{idx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="pillar-list">
+          {t.pillars.map((pillar, idx) => (
+            <article
+              class="pillar-card"
+              data-pillar-panel={pillar.id}
+              data-active={idx === 0 ? 'true' : 'false'}
+            >
+              <p class="pillar-code tabular">{pillar.code}</p>
+              <h2 class="pillar-title">{pillar.title}</h2>
+              <code class="pillar-formula">{pillar.formula}</code>
+              <p class="pillar-summary">{pillar.summary}</p>
+              <p class="pillar-projects tabular">{pillar.projects}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </aside>
   </div>
 </header>
+
+<script>
+  const roots = document.querySelectorAll<HTMLElement>('[data-pillars]');
+  for (const root of roots) {
+    root.setAttribute('data-enhanced', 'true');
+    const tabs = root.querySelectorAll<HTMLButtonElement>('[data-pillar-tab]');
+    const panels = root.querySelectorAll<HTMLElement>('[data-pillar-panel]');
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-pillar-tab');
+        for (const btn of tabs) {
+          btn.setAttribute('aria-selected', String(btn === tab));
+        }
+        for (const panel of panels) {
+          panel.setAttribute(
+            'data-active',
+            String(panel.getAttribute('data-pillar-panel') === target),
+          );
+        }
+      });
+    }
+  }
+</script>
 
 <style>
   .stage {
     border-bottom: 1px solid var(--rule);
+    background-image:
+      radial-gradient(circle at 82% 22%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 45%),
+      linear-gradient(to bottom, color-mix(in srgb, var(--fg) 2%, var(--bg)), var(--bg));
+  }
+
+  .topbar {
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+  }
+
+  .topbar-inner {
+    max-width: 76rem;
+    margin-inline: auto;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .doc-badge {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .topbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .section-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .section-nav a:hover,
+  .section-nav a:focus-visible {
+    color: var(--fg);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.25em;
   }
 
   .inner {
-    max-width: 72rem;
+    max-width: 76rem;
     margin-inline: auto;
-    padding: clamp(3rem, 2rem + 5vw, 7rem) 1.5rem;
+    padding: clamp(2.75rem, 2rem + 4vw, 5.25rem) 1.5rem;
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: clamp(2rem, 1rem + 4vw, 5rem);
-    align-items: center;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1.5rem + 3vw, 4rem);
+    align-items: start;
   }
 
   .copy {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.35rem;
+  }
+
+  .researcher-badge {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0.95rem;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 2.5%, var(--bg));
+    max-width: 36rem;
+  }
+
+  .avatar-frame {
+    flex-shrink: 0;
+    width: 4.5rem;
+    height: 4.5rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--rule));
+    padding: 0.15rem;
+    background: var(--bg);
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: contrast(1.05);
+  }
+
+  .identity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .identity-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.75rem;
   }
 
   .name {
     color: var(--accent);
-    font-size: 0.8125rem;
-    letter-spacing: 0.12em;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .citation {
+    font-size: 0.6875rem;
+    padding: 0.08rem 0.4rem;
+    border: 1px solid var(--rule);
+    color: var(--fg);
+    background: color-mix(in srgb, var(--fg) 4%, var(--bg));
+  }
+
+  .affiliation {
+    color: var(--fg);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  .meta-line {
+    color: var(--muted);
+    font-size: 0.6875rem;
   }
 
   h1 {
-    font-size: clamp(2.75rem, 1.5rem + 5vw, 6rem);
+    font-size: clamp(2.75rem, 1.75rem + 4.2vw, 5.25rem);
+    line-height: 1.04;
   }
 
   .intro {
     color: var(--muted);
-    max-width: 30rem;
+    max-width: 36rem;
+    font-size: 1.0625rem;
   }
 
-  .portrait {
-    margin: 0;
-    justify-self: end;
-    width: min(100%, 22rem);
-  }
-
-  .portrait img {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 5;
+  .hardware-box {
+    margin-top: 0.35rem;
     border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 0.9rem 1.1rem;
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-width: 36rem;
   }
 
-  @media (max-width: 40rem) {
+  .hardware-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .hardware-label {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .hardware-spec {
+    color: var(--fg);
+  }
+
+  .hardware-detail {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .console {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .telemetry-panel,
+  .pillars-panel {
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 5%, var(--bg));
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .panel-title {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .panel-stamp {
+    color: var(--muted);
+    font-size: 0.6875rem;
+  }
+
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .stat {
+    padding: 0.85rem 1rem;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .stat:last-child {
+    border-right: 0;
+  }
+
+  .stat dt {
+    color: var(--muted);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .stat dd {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .stat .stat-accent {
+    color: var(--accent);
+  }
+
+  .pillar-tabs {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .pillar-tab {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  .pillar-tab[aria-selected='true'] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+  }
+
+  .pillar-list {
+    padding: 1.1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  [data-pillars][data-enhanced='true'] .pillar-card[data-active='false'] {
+    display: none;
+  }
+
+  .pillar-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .pillar-code {
+    color: var(--accent);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pillar-title {
+    font-size: 1.5rem;
+    color: var(--fg);
+  }
+
+  .pillar-formula {
+    display: block;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--accent) 7%, var(--bg));
+    color: var(--fg);
+    font-size: 0.75rem;
+  }
+
+  .pillar-summary {
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+
+  .pillar-projects {
+    color: var(--fg);
+    font-size: 0.75rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed var(--rule);
+  }
+
+  @media (max-width: 56rem) {
     .inner {
       grid-template-columns: 1fr;
     }
+  }
 
-    .portrait {
-      justify-self: start;
-      width: min(100%, 16rem);
+  @media (max-width: 36rem) {
+    .researcher-badge {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .telemetry-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stat {
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .stat:last-child {
+      border-bottom: 0;
     }
   }
 </style>

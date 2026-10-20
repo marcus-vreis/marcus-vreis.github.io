@@ -2,13 +2,13 @@
 import { getCollection } from 'astro:content';
 import Hero from './Hero.astro';
 import ProjectIndex from './ProjectIndex.astro';
-import About from './About.astro';
+import About, { type ResearchItem } from './About.astro';
 import { snapshot } from '../lib/github/load';
 import { buildIndexRows } from '../lib/index-rows';
 import { assertParity } from '../lib/parity';
 import { entriesFor, slugOf } from '../lib/projects';
 import { buildPath, type Locale } from '../lib/i18n';
-import { UI } from '../lib/ui-strings';
+import { UI, type CharacterId } from '../lib/ui-strings';
 
 interface Props {
   locale: Locale;
@@ -29,19 +29,38 @@ if (locale === 'pt') {
   for (const warning of warnings) console.warn(`[bancada] ${warning}`);
 }
 
-const research = entriesFor(all, locale)
+const snapshotDate = snapshot.generatedAt.slice(0, 10);
+const totalCommits90d = rows.reduce((sum, r) => sum + r.commits90d, 0);
+const activeCount = rows.filter((r) => r.mood !== 'formado').length;
+const latestRelease = rows.find((r) => r.latestTag)?.latestTag ?? '—';
+
+const research: ResearchItem[] = entriesFor(all, locale)
   .filter((e) => e.data.kind === 'pesquisa')
   .map((e) => ({
     title: e.data.title,
+    persona: e.data.persona,
     tagline: e.data.tagline,
+    accent: e.data.accent,
+    accentLight: e.data.accentLight,
+    character: (e.data.character as CharacterId | undefined) ?? 'nevoeiro',
+    year: e.data.year,
+    stack: e.data.stack,
     href: buildPath({ kind: 'project', slug: slugOf(e.id) }, locale),
   }));
 
 const t = UI[locale];
 ---
 
-<Hero locale={locale} pathname={Astro.url.pathname} />
+<Hero
+  locale={locale}
+  pathname={Astro.url.pathname}
+  snapshotDate={snapshotDate}
+  totalCommits90d={totalCommits90d}
+  activeCount={activeCount}
+  totalRepos={rows.length}
+  latestRelease={latestRelease}
+/>
 <main>
-  <ProjectIndex rows={rows} heading={t.projectsHeading} />
+  <ProjectIndex rows={rows} heading={t.projectsHeading} locale={locale} />
   <About locale={locale} research={research} />
 </main>

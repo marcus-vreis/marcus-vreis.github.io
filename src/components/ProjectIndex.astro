@@ -1,66 +1,264 @@
 ---
+import Schematic from './Schematic.astro';
+import type { Locale } from '../lib/i18n';
 import type { IndexRow } from '../lib/index-rows';
+import { UI } from '../lib/ui-strings';
 
 interface Props {
   rows: IndexRow[];
   heading: string;
+  locale: Locale;
 }
 
-const { rows, heading } = Astro.props;
+const { rows, heading, locale } = Astro.props;
+const t = UI[locale];
+
+const activeCount = rows.filter((r) => r.mood !== 'formado').length;
+const graduatedCount = rows.filter((r) => r.mood === 'formado').length;
 ---
 
-<section id="projetos" aria-labelledby="projetos-title">
-  <h2 id="projetos-title">{heading}</h2>
-  <ol>
-    {rows.map((row) => (
-      <li style={`--accent: light-dark(${row.accentLight}, ${row.accent})`}>
-        <a href={row.href} data-slug={row.slug} data-mood={row.mood}>
-          <span class="title">{row.title}</span>
-          <span class="sep">{', '}</span>
-          <span class="mood">{row.moodLabel}</span>
-          <span class="sep">{', '}</span>
-          <span class="detail tabular">{row.detail}</span>
-        </a>
-      </li>
-    ))}
+<section id="projetos" aria-labelledby="projetos-title" data-project-index>
+  <div class="section-header">
+    <div class="section-copy">
+      <h2 id="projetos-title">{heading}</h2>
+      <p class="subtitle">{t.projectsSubtitle}</p>
+    </div>
+
+    <div class="filters tabular" role="toolbar" aria-label={heading}>
+      <button type="button" class="filter-btn" data-filter="all" aria-pressed="true">
+        {t.filterAll} ({rows.length})
+      </button>
+      <button type="button" class="filter-btn" data-filter="active" aria-pressed="false">
+        {t.filterActive} ({activeCount})
+      </button>
+      <button type="button" class="filter-btn" data-filter="graduated" aria-pressed="false">
+        {t.filterGraduated} ({graduatedCount})
+      </button>
+    </div>
+  </div>
+
+  <ol class="dossier-list">
+    {rows.map((row) => {
+      const spec = t.schematics[row.character];
+      const group = row.mood === 'formado' ? 'graduated' : 'active';
+      return (
+        <li
+          class="dossier-item"
+          data-group={group}
+          style={`--accent: light-dark(${row.accentLight}, ${row.accent})`}
+        >
+          <a class="dossier-link" href={row.href} data-slug={row.slug} data-mood={row.mood}>
+            <div class="dossier-topbar tabular">
+              <div class="dossier-id">
+                <span class="index-num">{row.indexNumber}</span>
+                {row.persona && <span class="persona">{row.persona}</span>}
+                {row.year && <span class="year">{row.year}</span>}
+              </div>
+
+              <div class="dossier-telemetry">
+                <span class="sep">{', '}</span>
+                <span class="mood">{row.moodLabel}</span>
+                {row.commits90d > 0 && (
+                  <span class="commits-pill">
+                    +{row.commits90d} {t.commits90dSuffix}
+                  </span>
+                )}
+                <span class="sep">{', '}</span>
+                <span class="detail tabular">{row.detail}</span>
+              </div>
+            </div>
+
+            <div class="dossier-body">
+              <div class="dossier-main">
+                <div class="title-row">
+                  <span class="title">{row.title}</span>
+                  <span class="inspect-cta tabular" aria-hidden="true">
+                    {t.inspectLabel} →
+                  </span>
+                </div>
+
+                {row.tagline && <p class="tagline">{row.tagline}</p>}
+
+                <p class="invariant">
+                  <strong class="tabular">{t.invariantLabel}:</strong> {spec.invariant}
+                </p>
+
+                {row.stack.length > 0 && (
+                  <ul class="stack tabular" aria-label={t.stackLabel}>
+                    {row.stack.map((tech) => (
+                      <li>{tech}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div class="dossier-diagram">
+                <Schematic character={row.character} locale={locale} variant="card" />
+              </div>
+            </div>
+          </a>
+        </li>
+      );
+    })}
   </ol>
 </section>
 
+<script>
+  const sections = document.querySelectorAll<HTMLElement>('[data-project-index]');
+  for (const section of sections) {
+    const buttons = section.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const items = section.querySelectorAll<HTMLElement>('.dossier-item');
+    for (const btn of buttons) {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+        for (const b of buttons) {
+          b.setAttribute('aria-pressed', String(b === btn));
+        }
+        for (const item of items) {
+          const group = item.getAttribute('data-group');
+          const visible = filter === 'all' || group === filter;
+          item.hidden = !visible;
+        }
+      });
+    }
+  }
+</script>
+
 <style>
   section {
-    max-width: 72rem;
+    max-width: 76rem;
     margin-inline: auto;
-    padding: clamp(2.5rem, 2rem + 3vw, 5rem) 1.5rem;
+    padding: clamp(2.75rem, 2rem + 3vw, 4.75rem) 1.5rem;
+  }
+
+  .section-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-width: 44rem;
   }
 
   h2 {
-    font-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);
-    margin-bottom: 1.5rem;
+    font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
   }
 
-  ol {
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9375rem;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+
+  .filter-btn[aria-pressed='true'] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  }
+
+  .dossier-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
-  a {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 9rem 17rem;
-    gap: 1rem;
-    align-items: baseline;
-    padding: 0.875rem 0.25rem;
-    border-bottom: 1px solid var(--rule);
+  .dossier-item[hidden] {
+    display: none;
+  }
+
+  .dossier-link {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 1.5%, var(--bg));
     text-decoration: none;
+    transition: border-color 140ms ease, background-color 140ms ease;
   }
 
-  a:hover .title,
-  a:focus-visible .title {
+  .dossier-link:hover,
+  .dossier-link:focus-visible {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 3.5%, var(--bg));
+  }
+
+  .dossier-link:hover .title,
+  .dossier-link:focus-visible .title {
     text-decoration: underline;
     text-decoration-color: var(--accent);
-    text-underline-offset: 0.2em;
+    text-underline-offset: 0.18em;
+  }
+
+  .dossier-link:hover .inspect-cta,
+  .dossier-link:focus-visible .inspect-cta {
+    color: var(--accent);
+  }
+
+  .dossier-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+    font-size: 0.75rem;
+  }
+
+  .dossier-id {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .index-num {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .persona {
+    color: var(--fg);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .year {
+    color: var(--muted);
+  }
+
+  .dossier-telemetry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .sep {
@@ -72,41 +270,105 @@ const { rows, heading } = Astro.props;
     white-space: nowrap;
   }
 
-  .title {
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-size: 1.375rem;
-  }
-
   .mood {
     color: var(--accent);
-    font-size: 0.8125rem;
+    font-weight: 600;
   }
 
-  /* O "pixel" antes do humor: mesmo quadrado das máquinas que vêm no Plano 4. */
   .mood::before {
     content: '';
     display: inline-block;
     width: 0.4375rem;
     height: 0.4375rem;
-    margin-right: 0.5rem;
+    margin-right: 0.45rem;
     background: var(--accent);
     vertical-align: 0.0625rem;
   }
 
-  .detail {
-    color: var(--muted);
-    font-size: 0.8125rem;
-    text-align: right;
+  .commits-pill {
+    padding: 0.1rem 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--rule));
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    color: var(--accent);
+    font-size: 0.6875rem;
   }
 
-  @media (max-width: 40rem) {
-    a {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
+  .detail {
+    color: var(--muted);
+  }
 
-    .detail {
-      grid-column: 1 / -1;
-      text-align: left;
+  .dossier-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.25rem;
+    align-items: start;
+  }
+
+  .dossier-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(1.65rem, 1.35rem + 1vw, 2.15rem);
+    line-height: 1.1;
+  }
+
+  .inspect-cta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .tagline {
+    color: var(--fg);
+    font-size: 0.975rem;
+    line-height: 1.5;
+  }
+
+  .invariant {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--accent);
+  }
+
+  .invariant strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .stack {
+    list-style: none;
+    padding: 0;
+    margin: 0.25rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .stack li {
+    font-size: 0.6875rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+    color: var(--muted);
+  }
+
+  @media (max-width: 54rem) {
+    .dossier-body {
+      grid-template-columns: 1fr;
     }
   }
 </style>
