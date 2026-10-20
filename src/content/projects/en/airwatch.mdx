@@ -1,7 +1,7 @@
 ---
 title: AirWatch
 persona: The Network
-tagline: Distributed collection, aggregation and visualisation of air-quality data.
+tagline: Distributed air-quality telemetry with RabbitMQ queues, idempotent aggregation and live streaming.
 accent: '#4EC9E0'
 accentLight: '#187687'
 order: 4
@@ -10,16 +10,23 @@ status: concluido
 github: 'marcus-vreis/AirWatch'
 character: estacao
 year: '2026'
-stack: ['TypeScript', 'Docker', 'WebSocket', 'REST']
+stack: ['TypeScript', 'RabbitMQ', 'Docker Compose', 'WebSocket', 'REST']
 repo: 'https://github.com/marcus-vreis/AirWatch'
 links: []
 ---
 
 A distributed system for collecting, aggregating and visualising air-quality
-data from simulated sensors. Multiple collector nodes batch their readings
-and send them to a central aggregator, which is consistent and tolerant of
-duplicates.
+telemetry across multiple collector nodes, built for the Distributed Systems
+course (SIN 142, UFV — Prof. Dr. Pedro Damaso).
 
-Results are exposed live over REST and WebSocket, and drawn into a dashboard.
-The whole system runs under Docker Compose. Built for a distributed-systems
-course.
+The architecture decouples collection from ingestion through **two RabbitMQ
+queues**: the central node dispatches collection requests on the first queue;
+worker nodes poll the external source, batch the readings into a single payload
+and publish it onto the second queue tagged with a unique idempotency token.
+The central core ingests batches with duplicate tolerance and persists the
+consolidated state.
+
+Downstream, processed aggregates stream live over **WebSocket** and remain
+queryable over a **REST API**, feeding a multi-group sensor dashboard. The
+entire cluster (collectors, RabbitMQ broker, core and frontend) boots
+reproducibly under `docker-compose`.

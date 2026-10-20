@@ -1,7 +1,7 @@
 ---
 title: Sorting-Algorithms-Hub
 persona: The Metronome
-tagline: A collection of sorting algorithms in C++.
+tagline: C++ implementation and empirical benchmark suite of sorting algorithms from N = 10 to 10⁶.
 accent: '#9A9791'
 accentLight: '#706D67'
 order: 8
@@ -10,13 +10,19 @@ status: concluido
 github: 'marcus-vreis/Sorting-Algorithms-Hub'
 character: esteira
 year: '2024'
-stack: ['C++']
+stack: ['C++', 'QuickSort (4 pivots)', 'MergeSort', 'HeapSort', 'Asymptotic Analysis']
 repo: 'https://github.com/marcus-vreis/Sorting-Algorithms-Hub'
 links: []
 ---
 
-A collection of sorting algorithms implemented in C++. A foundations
-repository: no interface, no elaborate benchmark, just the implementations.
+An empirical sorting benchmark suite written in pure C++ (`Algoritmos.h`,
+`heap_func.h`), covering `Insertion_Sort`, `Selection_Sort`, `Merge_Sort`,
+`Heap_Sort` and four `Quick_Sort` partitioning strategies (standard pivot,
+mean, median-of-three and randomised pivot).
 
-It exists because understanding a data structure eventually requires writing
-it.
+Beyond implementing each algorithm from scratch, the repository measures and
+records wall-clock execution times across three input distributions
+(**ascending**, **descending** and **random**) spanning six orders of magnitude
+($N = 10, 10^2, 10^3, 10^4, 10^5, 10^6$), exposing where quadratic $O(N^2)$
+degradation surfaces in practice and how median-of-three and randomised pivots
+preserve the $O(N \log N)$ regime.

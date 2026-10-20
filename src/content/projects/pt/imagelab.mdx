@@ -1,7 +1,7 @@
 ---
 title: ImageLab
 persona: O Bisturi
-tagline: Aplicação de desktop para processamento digital de imagens clássico.
+tagline: Bancada modular de processamento digital de imagens nos domínios espacial, morfológico e de frequência.
 accent: '#E040A0'
 accentLight: '#CA2186'
 order: 5
@@ -10,17 +10,21 @@ status: concluido
 github: 'marcus-vreis/ImageLab'
 character: scanner
 year: '2025'
-stack: ['Python', 'OpenCV', 'scikit-image', 'Tkinter']
+stack: ['Python', 'OpenCV', 'scikit-image', 'Fourier / FFT', 'Tkinter']
 repo: 'https://github.com/marcus-vreis/ImageLab'
 links: []
 ---
 
-Uma aplicação de desktop com interface gráfica para processamento digital de
-imagens clássico, construída para a disciplina de PDI na UFV. Deliberadamente
-modular: a interface é separada da lógica de processamento, com um módulo por
-família de operação.
+Aplicação de desktop para experimentação direta em Processamento Digital de
+Imagens clássico (SIN 392, UFV). Projetada como instrumento de inspeção pixel a
+pixel: a camada de interface e eventos (`main.py`) é estritamente isolada dos
+seis módulos matemáticos de operação.
 
-Cobre histograma, transformações de intensidade (alargamento de contraste,
-equalização), filtros espaciais (passa-baixa e passa-alta), domínio de
-frequência via Fourier, morfologia (erosão e dilatação) e limiarização de
-Otsu.
+Cada família de transformação reside em um módulo puro dedicado:
+`operacoes_histograma.py` (distribuição tonal e estatísticas),
+`transformacoes_intensidade.py` (alargamento de contraste e equalização de
+histograma), `filtros_espaciais.py` (convoluções passa-baixa de suavização e
+passa-alta de aguçamento/bordas), `dominio_frequencia.py` (espectro e filtragem
+via Transformada Rápida de Fourier), `operacoes_morfologicas.py` (erosão e
+dilatação com elemento estruturante) e `operacoes_segmentacao.py`
+(limiarização ótima global de Otsu).

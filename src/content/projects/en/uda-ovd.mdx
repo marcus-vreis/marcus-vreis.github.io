@@ -1,26 +1,39 @@
 ---
-title: Domain adaptation for detection
+title: Open-Vocabulary Detectors under Domain Shift
 persona: The Fog
-tagline: Unsupervised domain adaptation for open-vocabulary object detection.
+tagline: When and why external anchors help pseudo-labelling under domain shift — filtering ceiling vs. completion.
 accent: '#8FA6B8'
 accentLight: '#547085'
-order: 3
+order: 9
 kind: pesquisa
-year: '2026—'
-stack: ['Grounding DINO', 'LoRA', 'Cityscapes']
+character: nevoeiro
+year: '2026—2028'
+stack: ['Grounding DINO', 'Faster R-CNN / RetinaNet', 'CLIP / SigLIP / DINOv2', 'COCO-C', 'Foggy Cityscapes', 'BDD100K']
 links: []
 ---
 
-Master's research, in progress. Unsupervised domain adaptation for
-open-vocabulary object detection: a source-free, lightweight adaptation of the
-text side of a frozen open-vocabulary detector (Grounding DINO), through
-prompt tuning and LoRA. It is also an empirical study of when VLM anchors
-actually help pseudo-labelling under domain shift.
+Master's research in Computer Science at **UFSCar** (advised by Prof. Dr.
+Jurandy Gomes de Almeida Junior). Investigates how object detectors and
+teacher–student self-training behave when target imagery undergoes severe
+domain shift — parametric corruptions (**COCO-C**), dense fog (**Foggy
+Cityscapes**, $\beta \in \{0.005, 0.01, 0.02\}$) and day $\to$ night transition
+(**BDD100K**).
 
-The original idea — using CLIP as a filter for pseudo-labels — did not work,
-for structural reasons: a recall ceiling, and the anchor's score being
-correlated with the teacher's confidence under corruption. That negative
-result became the motivation and the analysis, rather than being buried.
+The study grew out of a rigorously measured negative result: using crop-level
+vision-language classifiers (**CLIP**, **SigLIP**) or dense visual features
+(**DINOv2 k-NN**) as a semantic filter to clean a teacher detector's
+pseudo-labels (Faster R-CNN / RetinaNet) **degrades AUPRC ranking across 100%
+of tested conditions** (Finding A1). Headroom analysis exposed the two
+structural causes: an isolated crop score loses the localisation context the
+detector already used, and under severe shift the teacher's primary failure
+mode is not false-positive inflation — it is **recall collapse** (Finding A3).
+Where filtering is needed most, the ceiling for filtering is lowest.
 
-Benchmarks are Cityscapes and Foggy Cityscapes. Everything is designed to run
-on a single consumer GPU.
+The actionable finding lies in the opposite mechanism: **pseudo-label
+completion** using a frozen open-vocabulary detector (**Grounding DINO**),
+which remains complementary to the closed-set teacher under domain shift
+(Finding A2). Recovering objects missed by the teacher rather than pruning its
+predictions lifts pseudo-label recall by **+0.077** and F1 by **+0.023**,
+driving teacher–student self-training on a single consumer GPU (RTX 5060 Ti
+16 GB). The work also includes independent reproductions of recent methods
+(**TTAOD-F**, NeurIPS 2025; **CCKM**, IEEE TIP 2026).

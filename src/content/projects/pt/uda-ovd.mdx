@@ -1,28 +1,39 @@
 ---
-title: Adaptação de domínio para detecção
+title: Detectores de Vocabulário Aberto sob Desvio de Domínio
 persona: O Nevoeiro
-tagline: Adaptação de domínio não supervisionada para detecção em vocabulário aberto.
+tagline: Quando e por que âncoras externas ajudam a pseudo-rotulagem sob deslocamento de domínio — filtragem vs. completação.
 accent: '#8FA6B8'
 accentLight: '#547085'
-order: 3
+order: 9
 kind: pesquisa
-year: '2026—'
-stack: ['Grounding DINO', 'LoRA', 'Cityscapes']
+character: nevoeiro
+year: '2026—2028'
+stack: ['Grounding DINO', 'Faster R-CNN / RetinaNet', 'CLIP / SigLIP / DINOv2', 'COCO-C', 'Foggy Cityscapes', 'BDD100K']
 links: []
 ---
 
-Pesquisa de mestrado, em andamento. Adaptação de domínio não supervisionada
-para detecção de objetos em vocabulário aberto: uma adaptação leve e sem
-acesso ao domínio fonte do lado textual de um detector de vocabulário aberto
-congelado (Grounding DINO), via prompt tuning e LoRA. É também um estudo
-empírico sobre quando âncoras de VLM realmente ajudam a pseudo-rotulagem sob
-deslocamento de domínio.
+Pesquisa de mestrado em Ciência da Computação na **UFSCar** (orientação do Prof.
+Dr. Jurandy Gomes de Almeida Junior). Investiga o comportamento de detectores
+de objetos e esquemas de autotreinamento professor-aluno quando as imagens de
+operação sofrem deslocamento severo de domínio — corrupções paramétricas
+(**COCO-C**), neblina densa (**Foggy Cityscapes**, $\beta \in \{0,005; 0,01;
+0,02\}$) e transição dia $\to$ noite (**BDD100K**).
 
-A ideia original — usar CLIP como filtro para pseudo-rótulos — não funcionou,
-por razões estruturais: um teto de recall, e o fato de a pontuação da âncora
-estar correlacionada com a confiança do professor sob corrupção. Esse
-resultado negativo virou motivação e objeto de análise, em vez de ser
-escondido.
+O estudo nasceu de um resultado negativo medido com rigor: usar classificadores
+visão-linguagem de recorte (**CLIP**, **SigLIP**) ou representações densas
+(**DINOv2 k-NN**) como filtro semântico para limpar os pseudo-rótulos de um
+professor (Faster R-CNN / RetinaNet) **piora o ranqueamento AUPRC em 100% das
+condições testadas** (Achado A1). A análise de teto revelou as duas causas
+estruturais: o escore de um recorte isolado perde o contexto de localização que
+o detector já possuía, e sob desvio forte o modo primário de falha do professor
+não é o excesso de falsos positivos — é o **colapso de recall** (Achado A3).
+Onde mais se tenta filtrar, menos objetos restam para filtrar.
 
-Os benchmarks são Cityscapes e Foggy Cityscapes. Tudo é desenhado para rodar
-em uma única GPU de consumo.
+A saída empírica e acionável está na direção oposta: **completação de
+pseudo-rótulos** com um detector de vocabulário aberto congelado (**Grounding
+DINO**), que é complementar ao professor sob mudança de domínio (Achado A2). Em
+vez de podar caixas do professor, recuperar os objetos que ele deixou de ver
+eleva o recall em **+0,077** e o F1 dos pseudo-rótulos em **+0,023**,
+sustentando o ciclo de autotreinamento em uma única GPU de consumo (RTX 5060 Ti
+16 GB). Inclui também reproduções independentes de métodos recentes da
+literatura (**TTAOD-F**, NeurIPS 2025; **CCKM**, IEEE TIP 2026).

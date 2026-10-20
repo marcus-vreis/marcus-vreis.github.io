@@ -1,7 +1,7 @@
 ---
 title: ImageLab
 persona: The Scalpel
-tagline: A desktop application for classical digital image processing.
+tagline: Modular digital image processing workbench across spatial, morphological and frequency domains.
 accent: '#E040A0'
 accentLight: '#CA2186'
 order: 5
@@ -10,15 +10,21 @@ status: concluido
 github: 'marcus-vreis/ImageLab'
 character: scanner
 year: '2025'
-stack: ['Python', 'OpenCV', 'scikit-image', 'Tkinter']
+stack: ['Python', 'OpenCV', 'scikit-image', 'Fourier / FFT', 'Tkinter']
 repo: 'https://github.com/marcus-vreis/ImageLab'
 links: []
 ---
 
-A desktop GUI application for classical digital image processing, built for a
-DIP course at UFV. Deliberately modular: the interface is separated from the
-processing logic, with one module per family of operation.
+A desktop workbench for hands-on classical Digital Image Processing (SIN 392,
+UFV). Engineered as a pixel-level inspection instrument: the GUI and event loop
+(`main.py`) are strictly separated from the six pure mathematical processing
+modules.
 
-It covers histogram operations, intensity transforms (contrast stretching,
-equalisation), spatial filters (low-pass and high-pass), the frequency domain
-via Fourier, morphology (erosion and dilation), and Otsu thresholding.
+Each transformation family lives in its own dedicated module:
+`operacoes_histograma.py` (tonal distribution and statistics),
+`transformacoes_intensidade.py` (contrast stretching and histogram
+equalisation), `filtros_espaciais.py` (low-pass smoothing and high-pass
+edge/sharpening convolutions), `dominio_frequencia.py` (spectral analysis and
+filtering via Fast Fourier Transform), `operacoes_morfologicas.py`
+(structuring-element erosion and dilation) and `operacoes_segmentacao.py`
+(global optimal Otsu thresholding).

@@ -1,0 +1,42 @@
+---
+title: custody-watch
+persona: A Costura
+tagline: Detecção de mudança de custódia de bagagem em vídeo de vigilância aeroportuária — sem reconhecimento facial.
+accent: '#A78BFA'
+accentLight: '#5B3FD9'
+order: 2
+kind: projeto
+status: ativo
+github: 'marcus-vreis/custody-watch'
+character: custodia
+year: '2026'
+stack: ['Python 3.12', 'YOLO26', 'OpenCV', 'Homografia', 'Re-ID']
+repo: 'https://github.com/marcus-vreis/custody-watch'
+links: []
+---
+
+Furto de bagagem em áreas de espera de aeroportos não é um problema de
+identidade — é um problema de **custódia de objeto**. A pergunta operacional
+não é *"quem é essa pessoa?"*, mas *"a pessoa que está saindo com a mala é a
+mesma que a deixou ali?"*. Esse reenquadramento elimina reconhecimento facial,
+banco biométrico e acusação autônoma: um hook de pré-commit rejeita
+explicitamente `insightface`, `deepface` e `dlib`. Como a taxa base torna um
+alarme binário matematicamente inútil (~1 furto real a cada 30.000 eventos), o
+sistema reduz ~600.000 eventos diários a uma fila ranqueada de clipes para um
+operador humano.
+
+A arquitetura é dividida por uma costura estrita no meio: tudo à esquerda de
+`GroundPlane` (`VideoSource → Detector → GroundPlane`) fala em **pixels**;
+tudo à direita (`BagRegistry → CustodyFSM → PartyManager → FlagEngine → AlertQueue`)
+fala apenas em **metros e segundos** `(x, y, t)`. A metade lógica não sabe se
+as trajetórias vieram de uma câmera real ou de um cenário sintético de 12
+linhas — o que permitiu isolar cinco defeitos encadeados de oclusão e posse
+(onde apenas 5% de falha na detecção de pessoa destruía 40% dos vínculos de
+dono quando a posse era decidida num único quadro).
+
+O arnês de avaliação também se recusa a mentir sobre o benchmark: no protocolo
+PETS2007 (limiar de 25 s), o `evaluate.py` analisa o XML do CAVIAR, constata
+que o maior abandono anotado dura **13,3 s** e encerra com código 1 recusando
+calcular `P_miss` — porque emitir zero alarmes a 25 s é o comportamento
+correto, e qualquer taxa calculada ali mediria a duração do clipe, não o
+sistema.

@@ -1,7 +1,7 @@
 ---
 title: VisionForge
 persona: The Instrument
-tagline: A local-first computer-vision experimentation platform.
+tagline: Local-first platform to train, compare and defend computer-vision models on your own GPU.
 accent: '#6EE7A8'
 accentLight: '#157C46'
 order: 1
@@ -10,11 +10,13 @@ status: ativo
 github: 'marcus-vreis/VisionForge'
 character: lente
 year: '2025—2026'
-stack: ['PyTorch', 'FastAPI', 'React', 'Docker']
+stack: ['PyTorch', 'FastAPI', 'React', 'YOLO / RT-DETR', 'Optuna', 'Docker']
 repo: 'https://github.com/marcus-vreis/VisionForge'
 links:
-  - label: 'PyPI'
+  - label: 'PyPI (visionforge-studio)'
     href: 'https://pypi.org/project/visionforge-studio/'
+  - label: 'DOI (Zenodo)'
+    href: 'https://doi.org/10.5281/zenodo.23425765'
 cover: ../../../assets/projects/visionforge.png
 coverAlt: 'VisionForge’s classification panel: experiment name field, strategy selector (simple training, k-fold, transfer learning, grid or random search), resnet50 model architecture, epoch, learning-rate and batch-size fields, and a “Train” button. Dark UI with red accents.'
 detailImage: ../../../assets/projects/visionforge-replicates.png
@@ -22,10 +24,18 @@ detailImageAlt: 'The same platform on the regression task, in “Replicates” m
 ---
 
 Train, validate and compare models on your own GPU — no cloud, no notebooks, no
-copy-pasted training loops. Five task families behind one interface:
-classification, detection, image regression, semantic segmentation and anomaly
-detection, plus an SDK for your own tasks.
+copy-pasted training loops. Five task families behind one interface
+(`classification`, `detection` with YOLO and RT-DETR, `regression`,
+`segmentation` and `anomaly`), `timm` backbones, Optuna-guided sweeps and an
+SDK for custom tasks. Published on PyPI as `visionforge-studio`, with
+hardware-aware setup via `visionforge doctor --fix` (which inspects the NVIDIA
+driver and installs the matching PyTorch wheel, from Turing `sm_75` through
+Blackwell `sm_120` on `cu128`).
 
-What the project argues is easy to say and rare to find: the number you report
-has to be a number you can defend. Every run records its full provenance, and
-every comparison can be replicated across seeds with confidence intervals.
+What the project argues is easy to say and rare to find: **the number you report
+has to be a number you can defend**. Every configuration is validated by
+Pydantic v2 before touching GPU time (ADR-002), every run writes a full
+provenance contract to `run.json` (ADR-013, including environment and schema
+version), and every comparison can be replicated across multiple seeds with
+bootstrap confidence intervals. Over 120 ADRs document every architectural
+decision in the repository.

@@ -1,7 +1,7 @@
 ---
 title: AirWatch
 persona: A Rede
-tagline: Coleta, agregação e visualização distribuída de dados de qualidade do ar.
+tagline: Telemetria distribuída de qualidade do ar com filas RabbitMQ, agregação idempotente e streaming em tempo real.
 accent: '#4EC9E0'
 accentLight: '#187687'
 order: 4
@@ -10,16 +10,24 @@ status: concluido
 github: 'marcus-vreis/AirWatch'
 character: estacao
 year: '2026'
-stack: ['TypeScript', 'Docker', 'WebSocket', 'REST']
+stack: ['TypeScript', 'RabbitMQ', 'Docker Compose', 'WebSocket', 'REST']
 repo: 'https://github.com/marcus-vreis/AirWatch'
 links: []
 ---
 
-Um sistema distribuído para coletar, agregar e visualizar dados de qualidade
-do ar vindos de sensores simulados. Múltiplos nós coletores agrupam leituras
-em lotes e as enviam para um agregador central, que é consistente e tolerante
-a duplicatas.
+Sistema distribuído para coleta, agregação e visualização de dados de qualidade
+do ar provenientes de múltiplos nós coletores, desenvolvido para a disciplina de
+Sistemas Distribuídos (SIN 142, UFV — Prof. Dr. Pedro Damaso).
 
-Os resultados são expostos em tempo real por REST e WebSocket, e desenhados
-em um painel. Todo o sistema roda sob Docker Compose. Construído para uma
-disciplina de sistemas distribuídos.
+A arquitetura desacopla a coleta e o processamento por meio de **duas filas do
+RabbitMQ**: o nó central despacha requisições de leitura na primeira fila; nós
+consumidores consultam a fonte externa, agrupam as leituras em lote (*batch*) e
+publicam o pacote na segunda fila acompanhado de um token único de idempotência.
+O núcleo central absorve os lotes com tolerância a duplicatas e persiste o
+estado consolidado.
+
+Na ponta de visualização, os agregados processados são transmitidos
+continuamente por **WebSocket** e expostos sob demanda via **API REST**,
+alimentando um painel organizado por grupos de sensores. Todo o cluster
+(coletores, broker RabbitMQ, core e frontend) sobe de forma reproduzível via
+`docker-compose`.

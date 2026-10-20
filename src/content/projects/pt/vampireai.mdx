@@ -1,33 +1,41 @@
 ---
 title: VampireAI
 persona: O Jogador Míope
-tagline: Um agente que joga um roguelike por turnos usando visão-linguagem local.
+tagline: Agente autônomo para roguelike por turnos onde a visão clássica decide a geometria e o VLM local decide a semântica.
 accent: '#DA464C'
 accentLight: '#C1272D'
-order: 2
+order: 3
 kind: projeto
 status: ativo
 github: 'marcus-vreis/VampireAI'
 character: fliperama
 year: '2026'
-stack: ['Qwen2.5-VL', 'Ollama', 'pydantic', 'mss']
+stack: ['Qwen2.5-VL 7B', 'OpenCV / NumPy', 'Ollama', 'Pydantic', 'vgamepad']
 repo: 'https://github.com/marcus-vreis/VampireAI'
 links: []
 cover: ../../../assets/projects/vampireai.png
 coverAlt: 'Tela de batalha de Vampire Crawlers: esqueletos e morcegos em pixel art sobre um campo, a mão de cartas do jogador em leque na parte inferior, e os medalhões de vida e mana nas laterais.'
 ---
 
-Um agente que joga Vampire Crawlers, um roguelike de deckbuilding por turnos,
-usando um modelo de visão-linguagem local: Qwen2.5-VL de 7B parâmetros,
-servido via Ollama. Nenhuma API paga, nenhum dado sai da máquina.
+Um agente que joga *Vampire Crawlers* (roguelike de deckbuilding por turnos,
+lançado em abril de 2026 — zero contaminação no pré-treino de qualquer modelo)
+usando inferência 100% local via Ollama (`Qwen2.5-VL` 7B). A pergunta de
+pesquisa inverte a usual: não *"quão bem um modelo de fronteira pago joga"*,
+mas *"qual é a divisão exata entre visão clássica e modelo de linguagem para
+que um modelo pequeno de peso aberto jogue em tempo real numa única GPU"*.
 
-A pergunta de pesquisa é o oposto da usual. Não "quão bem um modelo de
-fronteira joga", mas "qual é o menor modelo de peso aberto que joga um jogo
-por turnos de forma razoável". O jogo foi lançado em abril de 2026, então não
-há contaminação nos dados de treino de nenhum modelo.
+A regra estruturante do projeto (ADR-022) é estrita: **visão computacional
+clássica decide geometria; o VLM decide apenas semântica**. Antes de enviar
+qualquer frame ao modelo, tudo que é medível em pixels é resolvido em funções
+puras sobre arrays NumPy (`src/vision/`): classificação de estado da tela por
+assinatura de cor, detecção de slots e cursor de cartas em **3,3 ms** (cobrindo
+a pulsação azul-magenta do círculo de custo), leitura de mana e HP em **1,6 ms**
+com um livro `glifo → algarismo` aprendido em runtime (`digits.py`, que usa o
+modelo apenas nas duas primeiras aparições de cada dígito), e navegação por
+BFS no minimapa somando máscaras de ícones à malha andável.
 
-O pipeline: captura de tela, detector de estado do jogo, percepção via VLM,
-decisão de estratégia validada por pydantic, entrada por gamepad virtual. Em
-2 de maio de 2026 houve um pivô que substituiu coordenadas de mouse por um
-gamepad virtual — cartas passaram a ser selecionadas por destaque visual e
-navegação, o que eliminou toda a calibração de interface.
+O resultado dessa separação reduziu o custo de um turno de combate de `6 + N`
+chamadas de VLM para **1 a 2 chamadas por turno** (< 15 s de latência alvo),
+com saídas validadas por Pydantic e execução via gamepad virtual DualShock 4
+(`vgamepad` sobre ViGEm Bus), sincronizada pela confirmação visual de movimento
+do cursor em vez de esperas fixas (ADR-041).

@@ -1,32 +1,41 @@
 ---
 title: VampireAI
 persona: The Short-Sighted Player
-tagline: An agent that plays a turn-based roguelike using a local vision-language model.
+tagline: Autonomous turn-based roguelike agent where classical CV decides geometry and a local VLM decides semantics.
 accent: '#DA464C'
 accentLight: '#C1272D'
-order: 2
+order: 3
 kind: projeto
 status: ativo
 github: 'marcus-vreis/VampireAI'
 character: fliperama
 year: '2026'
-stack: ['Qwen2.5-VL', 'Ollama', 'pydantic', 'mss']
+stack: ['Qwen2.5-VL 7B', 'OpenCV / NumPy', 'Ollama', 'Pydantic', 'vgamepad']
 repo: 'https://github.com/marcus-vreis/VampireAI'
 links: []
 cover: ../../../assets/projects/vampireai.png
 coverAlt: 'A Vampire Crawlers battle screen: pixel-art skeletons and bats across the field, the player’s hand of cards fanned at the bottom, and the health and mana orbs at the sides.'
 ---
 
-An agent that plays Vampire Crawlers, a turn-based deckbuilder roguelike,
-using a local vision-language model: Qwen2.5-VL at 7B parameters, served
-through Ollama. No paid API, no data leaving the machine.
+An agent that plays *Vampire Crawlers* (a turn-based deckbuilder roguelike
+released in April 2026 — zero contamination in any model's training data) using
+100% local inference through Ollama (`Qwen2.5-VL` 7B). The research question
+inverts the usual one: not *"how well can a paid frontier model play"*, but
+*"what is the exact boundary between classical computer vision and a
+vision-language model so that a small open-weight model plays in real time on a
+single GPU"*.
 
-The research question runs opposite to the usual one. Not "how well can a
-frontier model play" but "what is the smallest open-weight model that plays a
-turn-based game reasonably". The game shipped in April 2026, so there is zero
-contamination in any model's training data.
+The project's structural rule (ADR-022) is strict: **classical CV decides
+geometry; the VLM decides only semantics**. Before anything reaches the model,
+every pixel-measurable question is answered by pure functions over NumPy arrays
+(`src/vision/`): screen-state classification via colour signatures, card-slot
+and cursor detection in **3.3 ms** (tracking the blue-to-magenta pulse of the
+cost orb), HUD mana and HP extraction in **1.6 ms** via a runtime-learned
+`glyph → digit` codebook (`digits.py`, which queries the model only on the
+first two appearances of each digit), and BFS pathfinding on the minimap with
+template-matched icons merged into the walkable mask.
 
-The pipeline: screen capture, game-state detector, VLM perception, strategy
-decision validated by pydantic, virtual gamepad input. A pivot on May 2, 2026
-replaced mouse coordinates with a virtual gamepad — cards are now selected
-through visual highlight and traversal, which removed all UI calibration.
+That split cut a combat turn's budget from `6 + N` VLM calls down to **1–2
+calls per turn** (< 15 s target latency), with Pydantic-validated decisions and
+execution through a virtual DualShock 4 gamepad (`vgamepad` over ViGEm Bus)
+paced by visual cursor-motion confirmation rather than fixed sleeps (ADR-041).

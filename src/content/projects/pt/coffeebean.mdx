@@ -1,7 +1,7 @@
 ---
 title: ComputerVision-CoffeeBean
 persona: O Grão
-tagline: Avaliação de modelos de rede neural sobre imagens de grãos de café.
+tagline: Classificação da qualidade de grãos de café com CNNs, decomposição Wavelet, CLAHE e ensemble.
 accent: '#A9704B'
 accentLight: '#926141'
 order: 6
@@ -9,18 +9,24 @@ kind: projeto
 status: concluido
 github: 'marcus-vreis/ComputerVision-CoffeeBean'
 character: cafeteira
-year: '2024'
-stack: ['PyTorch', 'scikit-learn', 'Jupyter']
+year: '2024—2025'
+stack: ['PyTorch', 'Wavelet / CLAHE', 'CNN Ensemble', 'scikit-learn', 'Jupyter']
 repo: 'https://github.com/marcus-vreis/ComputerVision-CoffeeBean'
 links:
-  - label: 'Vídeo'
+  - label: 'Vídeo explicativo'
     href: 'https://www.youtube.com/watch?v=mVWqjKUZZsI'
 ---
 
-Implementação e avaliação de vários modelos de rede neural sobre um conjunto
-de imagens de grãos de café, para uma disciplina de visão computacional. O
-trabalho resultou em um artigo escrito documentando metodologia, resultados e
-discussão, além de um vídeo explicativo.
+Investigação experimental sobre avaliação automática da qualidade de grãos de
+café por visão computacional e aprendizado profundo, iniciada na disciplina
+SIN 393 (UFV) e expandida na Iniciação Científica e no Trabalho de Conclusão de
+Curso sob orientação do Prof. Dr. Pedro Moises de Sousa.
 
-O repositório é deliberadamente transparente sobre o processo, para que o
-trabalho possa ser revisado e replicado.
+O pipeline combina realce adaptativo de contraste local (**CLAHE**) e
+decomposição multirresolução por **Transformada Wavelet Discreta** com o
+treinamento e comparação sistemática de arquiteturas convolucionais e técnicas
+de **ensemble** em PyTorch. Essa linha de pesquisa gerou o artigo publicado
+como primeiro autor nos anais do *Workshop de Sistemas de Informação (WSIS
+2024, pp. 33–38)* — *Quality Assessment of Coffee Beans Using Convolutional
+Neural Networks with Wavelet and CLAHE Techniques* — além do artigo completo e
+vídeo técnico no repositório.

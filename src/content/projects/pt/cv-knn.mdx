@@ -1,7 +1,7 @@
 ---
 title: ComputerVision-KNN
 persona: As Formas
-tagline: Classificação de formas com k-NN e SVM sobre o conjunto MPEG7.
+tagline: Extração de descritores geométricos e classificação de formas MPEG7 com k-NN e SVM.
 accent: '#FF7A29'
 accentLight: '#BD4700'
 order: 7
@@ -10,14 +10,18 @@ status: concluido
 github: 'marcus-vreis/ComputerVision-KNN'
 character: plotter
 year: '2024'
-stack: ['scikit-image', 'k-NN', 'SVM', 'MPEG7']
+stack: ['scikit-image', 'scikit-learn', 'k-NN', 'SVM', 'MPEG7']
 repo: 'https://github.com/marcus-vreis/ComputerVision-KNN'
 links: []
 ---
 
-Aplicação e avaliação de k-NN e SVM sobre uma versão modificada do conjunto de
-formas MPEG7. Cobre o pipeline clássico completo: pré-processamento e
-filtragem de imagem com scikit-image, extração e seleção de características,
-e então classificação.
+Pipeline clássico completo de reconhecimento de padrões visuais sobre uma versão
+modificada do benchmark de silhuetas **MPEG7**. O trabalho percorre cada estágio
+antes do aprendizado profundo: filtragem e segmentação morfológica com
+`scikit-image`, extração de descritores de forma e região, seleção de atributos
+e projeção do espaço de características.
 
-O desempenho é medido por acurácia, precisão, revocação e F1.
+Na etapa de decisão, compara fronteiras não-paramétricas (**k-Nearest
+Neighbors**) contra separadores de margem máxima (**Support Vector Machines**),
+avaliando sensibilidade à escolha de $k$, hiperparâmetros de kernel e balanço
+entre acurácia, precisão, revocação e F1-score por classe morfológica.

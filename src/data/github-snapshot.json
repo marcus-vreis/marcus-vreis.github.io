@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T00:00:00Z",
+  "generatedAt": "2026-10-19T00:00:00Z",
   "repos": {
     "marcus-vreis/AirWatch": {
       "repo": "marcus-vreis/AirWatch",
@@ -29,13 +29,6 @@
       "latestTag": null,
       "stars": 0
     },
-    "marcus-vreis/RVH-Construtora": {
-      "repo": "marcus-vreis/RVH-Construtora",
-      "lastCommitAt": "2026-08-20T14:59:19Z",
-      "commits90d": 5,
-      "latestTag": null,
-      "stars": 0
-    },
     "marcus-vreis/Sorting-Algorithms-Hub": {
       "repo": "marcus-vreis/Sorting-Algorithms-Hub",
       "lastCommitAt": "2025-10-12T15:33:06Z",
@@ -52,15 +45,15 @@
     },
     "marcus-vreis/VisionForge": {
       "repo": "marcus-vreis/VisionForge",
-      "lastCommitAt": "2026-08-29T03:35:24Z",
-      "commits90d": 147,
-      "latestTag": "v0.10.0",
+      "lastCommitAt": "2026-10-19T12:24:23Z",
+      "commits90d": 283,
+      "latestTag": "v0.17.0",
       "stars": 0
     },
-    "marcus-vreis/VoleiArena": {
-      "repo": "marcus-vreis/VoleiArena",
-      "lastCommitAt": "2026-07-23T22:03:05Z",
-      "commits90d": 5,
+    "marcus-vreis/custody-watch": {
+      "repo": "marcus-vreis/custody-watch",
+      "lastCommitAt": "2026-09-20T23:57:04Z",
+      "commits90d": 98,
       "latestTag": null,
       "stars": 0
     }

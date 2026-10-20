@@ -1,7 +1,7 @@
 ---
 title: VisionForge
 persona: O Instrumento
-tagline: Plataforma local-first de experimentação em visão computacional.
+tagline: Plataforma local-first para treinar, comparar e defender modelos de visão computacional na própria GPU.
 accent: '#6EE7A8'
 accentLight: '#157C46'
 order: 1
@@ -10,11 +10,13 @@ status: ativo
 github: 'marcus-vreis/VisionForge'
 character: lente
 year: '2025—2026'
-stack: ['PyTorch', 'FastAPI', 'React', 'Docker']
+stack: ['PyTorch', 'FastAPI', 'React', 'YOLO / RT-DETR', 'Optuna', 'Docker']
 repo: 'https://github.com/marcus-vreis/VisionForge'
 links:
-  - label: 'PyPI'
+  - label: 'PyPI (visionforge-studio)'
     href: 'https://pypi.org/project/visionforge-studio/'
+  - label: 'DOI (Zenodo)'
+    href: 'https://doi.org/10.5281/zenodo.23425765'
 cover: ../../../assets/projects/visionforge.png
 coverAlt: 'Painel de classificação do VisionForge: nome do experimento, seletor de estratégia (treino simples, k-fold, transfer learning, busca em grade ou aleatória), arquitetura resnet50, campos de épocas, taxa de aprendizado e tamanho de lote, e o botão “Treinar”. Interface escura com acentos vermelhos.'
 detailImage: ../../../assets/projects/visionforge-replicates.png
@@ -22,11 +24,18 @@ detailImageAlt: 'A mesma plataforma na tarefa de regressão, no modo “Réplica
 ---
 
 Treinar, validar e comparar modelos na própria GPU — sem nuvem, sem notebook,
-sem laço de treino copiado. Cinco famílias de tarefa atrás da mesma interface:
-classificação, detecção, regressão de imagem, segmentação semântica e detecção
-de anomalia, mais um SDK para tarefas próprias.
+sem laço de treino copiado. Cinco famílias de tarefa atrás da mesma interface
+(`classification`, `detection` com YOLO e RT-DETR, `regression`, `segmentation`
+e `anomaly`), backbones `timm`, varreduras guiadas por Optuna e um SDK para
+tarefas próprias. Publicado no PyPI como `visionforge-studio`, com instalação
+de hardware assistida por `visionforge doctor --fix` (que inspeciona o driver
+NVIDIA e instala a wheel exata do PyTorch, de Turing `sm_75` a Blackwell
+`sm_120` com `cu128`).
 
-O que o projeto defende é simples de dizer e raro de encontrar: o número que
-você reporta precisa ser um número que você consegue defender. Toda execução
-grava a proveniência completa, e toda comparação pode ser replicada em várias
-seeds com intervalo de confiança.
+O que o projeto defende é simples de dizer e raro de encontrar: **o número que
+você reporta precisa ser um número que você consegue defender**. Toda configuração
+é validada em Pydantic v2 antes de alocar tempo de GPU (ADR-002), toda execução
+grava o contrato completo de proveniência em `run.json` (ADR-013, incluindo
+ambiente e versão de schema), e qualquer comparação pode ser executada em modo
+de réplicas multi-seed com intervalo de confiança por bootstrap. Mais de 120
+ADRs documentam cada decisão arquitetural do repositório.

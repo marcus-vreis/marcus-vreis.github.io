@@ -1,7 +1,7 @@
 ---
 title: Sorting-Algorithms-Hub
 persona: O Metrônomo
-tagline: Uma coleção de algoritmos de ordenação em C++.
+tagline: Implementação em C++ e bateria empírica de algoritmos de ordenação de N = 10 a 10⁶.
 accent: '#9A9791'
 accentLight: '#706D67'
 order: 8
@@ -10,14 +10,19 @@ status: concluido
 github: 'marcus-vreis/Sorting-Algorithms-Hub'
 character: esteira
 year: '2024'
-stack: ['C++']
+stack: ['C++', 'QuickSort (4 pivôs)', 'MergeSort', 'HeapSort', 'Análise Assintótica']
 repo: 'https://github.com/marcus-vreis/Sorting-Algorithms-Hub'
 links: []
 ---
 
-Uma coleção de algoritmos de ordenação implementados em C++. Um repositório
-de fundamentos: sem interface, sem benchmark elaborado, apenas as
-implementações.
+Bateria experimental de algoritmos de ordenação escrita em C++ puro (`Algoritmos.h`,
+`heap_func.h`), cobrindo `Insertion_Sort`, `Selection_Sort`, `Merge_Sort`,
+`Heap_Sort` e quatro variantes de particionamento do `Quick_Sort` (pivô padrão,
+média, mediana de três e pivô aleatório).
 
-Existe porque entender uma estrutura de dados exige, em algum momento,
-escrevê-la.
+Mais do que implementar cada estrutura de dados do zero, o repositório executa
+e registra os tempos reais de CPU sob três regimes de entrada (**crescente**,
+**decrescente** e **aleatório**) em seis ordens de grandeza ($N = 10, 10^2,
+10^3, 10^4, 10^5, 10^6$), expondo na prática onde a degradação quadrática
+$O(N^2)$ aparece e como a escolha de pivô (mediana e aleatório) preserva o
+regime $O(N \log N)$.
