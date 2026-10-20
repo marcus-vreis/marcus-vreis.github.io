@@ -1,7 +1,7 @@
 ---
 title: ComputerVision-CoffeeBean
 persona: The Bean
-tagline: Coffee-bean quality assessment using CNNs, Wavelet decomposition, CLAHE and ensemble methods.
+tagline: Coffee-bean quality grading with CNNs, Discrete Wavelet Transform, CLAHE, and ensemble voting.
 accent: '#A9704B'
 accentLight: '#926141'
 order: 6
@@ -13,20 +13,12 @@ year: '2024—2025'
 stack: ['PyTorch', 'Wavelet / CLAHE', 'CNN Ensemble', 'scikit-learn', 'Jupyter']
 repo: 'https://github.com/marcus-vreis/ComputerVision-CoffeeBean'
 links:
-  - label: 'Explanatory video'
+  - label: 'WSIS 2024 Paper (DOI)'
+    href: 'https://doi.org/10.5753/wsis.2024.33669'
+  - label: 'Video Presentation'
     href: 'https://www.youtube.com/watch?v=mVWqjKUZZsI'
 ---
 
-Experimental study on automated coffee-bean quality assessment via computer
-vision and deep learning, initiated in SIN 393 (UFV) and expanded into
-undergraduate research and a B.Sc. thesis advised by Prof. Dr. Pedro Moises de
-Sousa.
+Experimental study on automated coffee-bean quality assessment using computer vision, started in course SIN 393 at [UFV](https://www.crp.ufv.br/) and expanded into an undergraduate research project and B.Sc. thesis advised by Prof. Dr. Pedro Moises de Sousa.
 
-The pipeline pairs Contrast Limited Adaptive Histogram Equalisation (**CLAHE**)
-and multiresolution **Discrete Wavelet Transform** decomposition with systematic
-training and evaluation of convolutional architectures and **ensemble** methods
-in PyTorch. This research line produced the first-author paper published in the
-*Proceedings of the Information Systems Workshop (WSIS 2024, pp. 33–38)* —
-*Quality Assessment of Coffee Beans Using Convolutional Neural Networks with
-Wavelet and CLAHE Techniques* — alongside the full paper and walkthrough video
-in the repository.
+The pipeline applies local contrast enhancement (CLAHE) and multiresolution Discrete Wavelet Transform (DWT) decomposition prior to classification with convolutional neural networks and ensemble voting in PyTorch. These experiments produced the first-author paper [*Quality Assessment of Coffee Beans Using Convolutional Neural Networks with Wavelet and CLAHE Techniques*](https://doi.org/10.5753/wsis.2024.33669), published in the *Proceedings of the Information Systems Workshop (WSIS 2024, pp. 33–38)*. The [GitHub repository](https://github.com/marcus-vreis/ComputerVision-CoffeeBean) contains the training notebooks, evaluated checkpoints, and [video presentation](https://www.youtube.com/watch?v=mVWqjKUZZsI).

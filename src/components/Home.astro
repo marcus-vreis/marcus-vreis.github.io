@@ -32,7 +32,10 @@ if (locale === 'pt') {
 const snapshotDate = snapshot.generatedAt.slice(0, 10);
 const totalCommits90d = rows.reduce((sum, r) => sum + r.commits90d, 0);
 const activeCount = rows.filter((r) => r.mood !== 'formado').length;
-const latestRelease = rows.find((r) => r.latestTag)?.latestTag ?? '—';
+const latestReleaseRow = rows.find((r) => r.latestTag);
+const latestRelease = latestReleaseRow?.latestTag ?? '—';
+const latestReleaseProject = latestReleaseRow?.title ?? '';
+const latestReleaseHref = latestReleaseRow?.href ?? '#projetos';
 
 const research: ResearchItem[] = entriesFor(all, locale)
   .filter((e) => e.data.kind === 'pesquisa')
@@ -59,6 +62,8 @@ const t = UI[locale];
   activeCount={activeCount}
   totalRepos={rows.length}
   latestRelease={latestRelease}
+  latestReleaseProject={latestReleaseProject}
+  latestReleaseHref={latestReleaseHref}
 />
 <main>
   <ProjectIndex rows={rows} heading={t.projectsHeading} locale={locale} />

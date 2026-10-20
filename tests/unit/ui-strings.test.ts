@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { UI, type CharacterId } from '../../src/lib/ui-strings';
+import { parseInlineLinks, UI, type CharacterId } from '../../src/lib/ui-strings';
 
 const PROJECTS_DIR = join(process.cwd(), 'src/content/projects/pt');
 
@@ -19,6 +19,8 @@ describe('UI strings & schematics parity', () => {
   });
 
   it('PT e EN possuem a mesma quantidade de itens em todas as seções do dossiê', () => {
+    expect(UI.en.intro).toHaveLength(UI.pt.intro.length);
+    expect(UI.en.researchAreas).toHaveLength(UI.pt.researchAreas.length);
     expect(UI.en.pillars).toHaveLength(UI.pt.pillars.length);
     expect(UI.en.publications).toHaveLength(UI.pt.publications.length);
     expect(UI.en.trajectory).toHaveLength(UI.pt.trajectory.length);
@@ -32,6 +34,28 @@ describe('UI strings & schematics parity', () => {
     expect(UI.en.skillGroups).toHaveLength(UI.pt.skillGroups.length);
     expect(UI.en.languages).toHaveLength(UI.pt.languages.length);
     expect(UI.en.contact).toHaveLength(UI.pt.contact.length);
+  });
+
+  it('todas as publicações possuem DOI e link direto para o artigo', () => {
+    for (const locale of ['pt', 'en'] as const) {
+      for (const pub of UI[locale].publications) {
+        expect(pub.doi).toMatch(/^10\.\d{4,9}\//);
+        expect(pub.href).toMatch(/^https:\/\/doi\.org\/10\./);
+      }
+    }
+  });
+
+  it('parseInlineLinks extrai links internos e externos preservando o texto ao redor', () => {
+    const parsed = parseInlineLinks(
+      'Estudo na [UFSCar](https://www.ppgcc.dc.ufscar.br/) sobre o [VisionForge](/projeto/visionforge).',
+    );
+    expect(parsed).toEqual([
+      { text: 'Estudo na ' },
+      { text: 'UFSCar', href: 'https://www.ppgcc.dc.ufscar.br/', external: true },
+      { text: ' sobre o ' },
+      { text: 'VisionForge', href: '/projeto/visionforge', external: false },
+      { text: '.' },
+    ]);
   });
 
   for (const file of readdirSync(PROJECTS_DIR).filter((f) => f.endsWith('.mdx')).sort()) {

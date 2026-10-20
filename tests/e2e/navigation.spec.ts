@@ -39,11 +39,14 @@ test('cada ficha diz o humor em palavras, o dado que o justifica e traz esquemá
   }
 });
 
-test('a pesquisa de mestrado e as publicações ficam no Sobre, não no índice', async ({ page }) => {
+test('a pesquisa de mestrado e as publicações ficam no Sobre, com links diretos para os artigos', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#projetos a[data-slug="uda-ovd"]')).toHaveCount(0);
-  await expect(page.locator('#sobre a[href="/projeto/uda-ovd"]')).toHaveCount(1);
+  await expect(page.locator('#pesquisa a.research-card[href="/projeto/uda-ovd"]')).toHaveCount(1);
   await expect(page.locator('#publicacoes .pub-card')).toHaveCount(4);
+  await expect(page.locator('#publicacoes .pub-title-link')).toHaveCount(4);
+  await expect(page.locator('.topbar-icons .icon-btn')).toHaveCount(6);
+  await expect(page.locator('.stat-release-project')).toHaveText('VisionForge');
 });
 
 test('uma ficha do índice leva à especificação técnica do projeto', async ({ page }) => {

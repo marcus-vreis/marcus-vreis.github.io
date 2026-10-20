@@ -1,7 +1,7 @@
 ---
 title: custody-watch
 persona: The Seam
-tagline: Luggage custody-change detection in airport surveillance video — no facial recognition.
+tagline: Luggage custody-change detection in airport surveillance video without facial recognition.
 accent: '#A78BFA'
 accentLight: '#5B3FD9'
 order: 2
@@ -12,31 +12,13 @@ character: custodia
 year: '2026'
 stack: ['Python 3.12', 'YOLO26', 'OpenCV', 'Homography', 'Re-ID']
 repo: 'https://github.com/marcus-vreis/custody-watch'
-links: []
+links:
+  - label: 'GitHub Repository'
+    href: 'https://github.com/marcus-vreis/custody-watch'
 ---
 
-Luggage theft in airport waiting areas is not an identity problem — it is an
-**object custody** problem. The operational question is not *"who is this
-person?"*, but *"is the person walking away with the bag the same one who set
-it down?"*. That reframing eliminates facial recognition, biometric storage
-and autonomous accusation: a pre-commit hook explicitly rejects `insightface`,
-`deepface` and `dlib`. Because the base rate makes a binary alarm
-mathematically useless (~1 real theft per 30,000 custody events), the system
-reduces ~600,000 daily custody events to a ranked review queue of clips for a
-human operator.
+[`custody-watch`](https://github.com/marcus-vreis/custody-watch) formulates airport luggage theft as an object custody-transfer problem. The pipeline checks whether the person walking away with a bag is the same person who placed it on that ground-plane coordinate. Biometric identification is excluded by design. A pre-commit hook blocks imports of facial recognition libraries (`insightface`, `deepface`, and `dlib`). Because the base rate of actual theft (~1 in 30,000 events) makes binary alarms unusable, the system reduces roughly 600,000 daily events into a ranked review queue of short video clips for human operators.
 
-The architecture is split across a strict seam in the middle: everything left
-of `GroundPlane` (`VideoSource → Detector → GroundPlane`) speaks **pixels**;
-everything right of it (`BagRegistry → CustodyFSM → PartyManager → FlagEngine → AlertQueue`)
-consumes only **metres and seconds** `(x, y, t)`. The logic half cannot tell
-whether trajectories came from a real camera or a 12-line synthetic scenario —
-which exposed five chained occlusion and ownership defects (where a 5% person
-detection failure rate cost 40% of ownership links when ownership was decided
-in a single frame).
+A geometric boundary splits the codebase in two. Modules left of `GroundPlane` (`VideoSource`, `Detector`, `GroundPlane`) process pixel coordinates; modules to the right (`BagRegistry`, `CustodyFSM`, `PartyManager`, `FlagEngine`, and `AlertQueue`) consume only ground-plane metres and seconds `(x, y, t)`. The state machine is agnostic to whether trajectories originate from camera feeds or 12-line synthetic unit tests. This separation isolated occlusion and ownership bugs where a 5% person-detection miss rate broke 40% of owner links under single-frame assignment.
 
-The evaluation harness also refuses to manufacture numbers from mismatched
-benchmarks: under the 25 s PETS2007 protocol, `evaluate.py` inspects CAVIAR's
-XML annotations, finds that the longest annotated abandonment lasts **13.3 s**,
-and exits 1 refusing to compute `P_miss` — because emitting nothing at 25 s is
-the correct behaviour, and a miss rate computed there would measure clip
-length rather than the system.
+The evaluation script `evaluate.py` enforces the same check on benchmark protocols. When asked to evaluate the PETS2007 25-second abandonment rule on the [CAVIAR](https://homepages.inf.ed.ac.uk/rbf/CAVIARDATA1/) XML annotations, the script detects that the longest annotated abandonment lasts 13.3 seconds and exits with status code 1, refusing to compute `P_miss` on a time threshold the dataset never reaches.

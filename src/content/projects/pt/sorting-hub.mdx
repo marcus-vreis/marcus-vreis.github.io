@@ -12,17 +12,11 @@ character: esteira
 year: '2024'
 stack: ['C++', 'QuickSort (4 pivôs)', 'MergeSort', 'HeapSort', 'Análise Assintótica']
 repo: 'https://github.com/marcus-vreis/Sorting-Algorithms-Hub'
-links: []
+links:
+  - label: 'Repositório GitHub'
+    href: 'https://github.com/marcus-vreis/Sorting-Algorithms-Hub'
 ---
 
-Bateria experimental de algoritmos de ordenação escrita em C++ puro (`Algoritmos.h`,
-`heap_func.h`), cobrindo `Insertion_Sort`, `Selection_Sort`, `Merge_Sort`,
-`Heap_Sort` e quatro variantes de particionamento do `Quick_Sort` (pivô padrão,
-média, mediana de três e pivô aleatório).
+Bateria experimental de algoritmos de ordenação escrita em C++ (`Algoritmos.h` e `heap_func.h`) no repositório [`Sorting-Algorithms-Hub`](https://github.com/marcus-vreis/Sorting-Algorithms-Hub). O código implementa `Insertion_Sort`, `Selection_Sort`, `Merge_Sort`, `Heap_Sort` e quatro estratégias de escolha de pivô para o `Quick_Sort` (primeiro elemento, média, mediana de três e pivô aleatório).
 
-Mais do que implementar cada estrutura de dados do zero, o repositório executa
-e registra os tempos reais de CPU sob três regimes de entrada (**crescente**,
-**decrescente** e **aleatório**) em seis ordens de grandeza ($N = 10, 10^2,
-10^3, 10^4, 10^5, 10^6$), expondo na prática onde a degradação quadrática
-$O(N^2)$ aparece e como a escolha de pivô (mediana e aleatório) preserva o
-regime $O(N \log N)$.
+O benchmark mede o tempo de CPU sob três distribuições de entrada (crescente, decrescente e aleatória) em seis ordens de grandeza ($N = 10, 10^2, 10^3, 10^4, 10^5, 10^6$). As curvas empíricas registram a transição para o regime quadrático $O(N^2)$ quando o pivô fixo encontra vetores já ordenados e a manutenção do comportamento $O(N \log N)$ com pivô por mediana de três e amostragem aleatória.

@@ -1,4 +1,5 @@
 ---
+import InlineText from './InlineText.astro';
 import Schematic from './Schematic.astro';
 import type { Locale } from '../lib/i18n';
 import type { IndexRow } from '../lib/index-rows';
@@ -21,7 +22,9 @@ const graduatedCount = rows.filter((r) => r.mood === 'formado').length;
   <div class="section-header">
     <div class="section-copy">
       <h2 id="projetos-title">{heading}</h2>
-      <p class="subtitle">{t.projectsSubtitle}</p>
+      <p class="subtitle">
+        <InlineText text={t.projectsSubtitle} />
+      </p>
     </div>
 
     <div class="filters tabular" role="toolbar" aria-label={heading}>

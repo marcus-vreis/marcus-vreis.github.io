@@ -12,6 +12,50 @@ export type CharacterId =
   | 'esteira'
   | 'nevoeiro';
 
+export type ContactIconId =
+  | 'github'
+  | 'scholar'
+  | 'linkedin'
+  | 'orcid'
+  | 'lattes'
+  | 'email';
+
+export interface InlineSegment {
+  text: string;
+  href?: string;
+  external?: boolean;
+}
+
+/**
+ * Converte marcações `[rótulo](url)` de uma string de `ui-strings.ts`
+ * em segmentos estruturados para renderização de links inline sem HTML bruto.
+ */
+export function parseInlineLinks(input: string): InlineSegment[] {
+  const segments: InlineSegment[] = [];
+  const pattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(input)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ text: input.slice(lastIndex, match.index) });
+    }
+    const href = match[2];
+    segments.push({
+      text: match[1],
+      href,
+      external: href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:'),
+    });
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < input.length) {
+    segments.push({ text: input.slice(lastIndex) });
+  }
+
+  return segments;
+}
+
 export interface SchematicSpec {
   code: string;
   formula: string;
@@ -26,6 +70,8 @@ export interface PublicationItem {
   badge: string;
   title: string;
   authors: string;
+  doi: string;
+  href: string;
   note: string;
 }
 
@@ -33,6 +79,7 @@ export interface TrajectoryItem {
   period: string;
   role: string;
   org: string;
+  orgHref?: string;
   regime: string;
   detail: string;
 }
@@ -42,6 +89,7 @@ export interface AcademicProjectItem {
   kind: string;
   code: string;
   title: string;
+  href?: string;
   org: string;
   advisor: string;
   detail: string;
@@ -51,6 +99,7 @@ export interface AwardItem {
   year: string;
   title: string;
   venue: string;
+  href?: string;
 }
 
 export interface EventItem {
@@ -58,6 +107,7 @@ export interface EventItem {
   kind: string;
   event: string;
   work: string;
+  href?: string;
 }
 
 export interface IndicatorItem {
@@ -69,6 +119,7 @@ export interface IndicatorItem {
 export interface BioFieldItem {
   label: string;
   value: string;
+  href?: string;
 }
 
 export interface SkillGroupItem {
@@ -88,14 +139,23 @@ export interface PillarItem {
   title: string;
   formula: string;
   summary: string;
-  projects: string;
+  projectLinks: { label: string; href: string }[];
+}
+
+export interface ContactItem {
+  icon: ContactIconId;
+  label: string;
+  value: string;
+  href: string;
 }
 
 export interface UiStrings {
   siteTitle: string;
   siteDescription: string;
   thesis: string;
-  intro: string;
+  intro: string[];
+  researchAreasLabel: string;
+  researchAreas: string[];
   yearLabel: string;
   stackLabel: string;
   repoLabel: string;
@@ -125,10 +185,13 @@ export interface UiStrings {
   languagesHeading: string;
   languages: LanguageItem[];
   contactHeading: string;
-  contact: { label: string; value: string; href: string }[];
+  contact: ContactItem[];
   name: string;
   fullName: string;
   citationShort: string;
+  heroRolePrimary: string;
+  heroRoleSecondary: string;
+  heroDegreeLine: string;
   birthAndNationality: string;
   locationLabel: string;
   portraitAlt: string;
@@ -139,10 +202,8 @@ export interface UiStrings {
   researchSubtitle: string;
   publicationsHeading: string;
   publicationsSubtitle: string;
+  doiLabel: string;
   trajectoryHeading: string;
-  hardwareHeading: string;
-  hardwareSpec: string;
-  hardwareDetail: string;
   navProjects: string;
   navResearch: string;
   navPublications: string;
@@ -178,29 +239,37 @@ export interface UiStrings {
 
 export const UI: Record<Locale, UiStrings> = {
   pt: {
-    siteTitle: 'Marcus Vinicius — visão computacional & engenharia de ML',
+    siteTitle: 'Marcus Vinicius Diniz dos Reis · Visão Computacional & Engenharia de ML',
     siteDescription:
-      'Portfólio e dossiê técnico-acadêmico de Marcus Vinicius Diniz dos Reis: visão computacional, detecção de objetos, pesquisa de mestrado na UFSCar e software open-source.',
-    thesis: 'Construo instrumentos para ver.',
-    intro:
-      'Engenheiro de visão computacional na Pix Force e mestrando em Ciência da Computação na UFSCar. Cada entrada deste caderno documenta a arquitetura, a costura matemática e a telemetria real dos meus repositórios públicos.',
+      'Portfólio e currículo acadêmico de Marcus Vinicius Diniz dos Reis: visão computacional, detecção de objetos, pesquisa de mestrado na UFSCar e software open-source.',
+    thesis: 'Visão computacional, detecção de objetos e sistemas de aprendizado de máquina.',
+    intro: [
+      'Sou engenheiro de visão computacional na Pix Force e mestrando em Ciência da Computação no [PPGCC da UFSCar](https://www.ppgcc.dc.ufscar.br/), orientado pelo [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ). Minha [pesquisa de mestrado](/projeto/uda-ovd) investiga a degradação de detectores de objetos e esquemas professor-aluno sob deslocamento de domínio (neblina, noite e corrupções sintéticas).',
+      'Graduado em Sistemas de Informação pela [Universidade Federal de Viçosa (UFV)](https://www.crp.ufv.br/) e ex-bolsista de Iniciação Científica da [FAPESP](https://bv.fapesp.br/) no projeto SFI2, desenvolvo ferramentas de código aberto como o [VisionForge](/projeto/visionforge) (registrado no [Zenodo](https://doi.org/10.5281/zenodo.23425765) e no [PyPI](https://pypi.org/project/visionforge-studio/)), o sistema de rastreamento de bagagem [custody-watch](/projeto/custody-watch) e o agente multimodal [VampireAI](/projeto/vampireai).',
+    ],
+    researchAreasLabel: 'Linhas de atuação',
+    researchAreas: [
+      'Detecção de Objetos (YOLO / RT-DETR)',
+      'Adaptação de Domínio (UDA)',
+      'Detectores Open-Vocabulary & VLMs',
+      'Inferência em Vídeo & MLOps',
+    ],
     yearLabel: 'Período',
     stackLabel: 'Stack',
     repoLabel: 'Repositório no GitHub',
-    backLabel: 'Voltar para a bancada',
+    backLabel: 'Voltar para o início',
     lastCommitLabel: 'último commit',
-    aboutHeading: 'Dossiê Pessoal, Acadêmico & Profissional',
+    aboutHeading: 'Currículo Acadêmico & Profissional',
     aboutSubtitle:
-      'Registro integral extraído do Currículo Lattes (CNPq 8185221944541336), da Súmula Curricular FAPESP e do histórico acadêmico na UFSCar e na UFV.',
-    lattesSummaryHeading: 'Resumo Curricular (Texto Oficial Lattes)',
+      'Dados compilados do [Currículo Lattes (CNPq 8185221944541336)](http://lattes.cnpq.br/8185221944541336), da Súmula Curricular FAPESP e dos registros na [UFSCar](https://www.ppgcc.dc.ufscar.br/) e na [UFV](https://www.crp.ufv.br/).',
+    lattesSummaryHeading: 'Resumo Curricular (Currículo Lattes)',
     lattesSummaryQuote:
       'Engenheiro de Machine Learning e pesquisador em Visão Computacional, com experiência em pesquisa aplicada de IA e desenvolvimento de modelos de Deep Learning. Atua com CNNs, detecção de objetos e processamento de imagens, com histórico em treinamento e deploy de modelos dentro de pipelines de MLOps e sistemas escaláveis.',
     aboutBody: [
-      'Nascido em 08 de março de 2004, sou engenheiro de visão computacional na Pix Force (onde ingressei como estagiário em janeiro de 2025 e atuo como engenheiro celetista em tempo integral desde janeiro de 2026) e mestrando em Ciência da Computação no PPGCC da UFSCar sob orientação do Prof. Dr. Jurandy Gomes de Almeida Junior.',
-      'Graduado em Sistemas de Informação pela Universidade Federal de Viçosa (UFV — Campus Rio Paranaíba), construí minha base científica combinando processamento digital de sinais, redes neurais convolucionais e sistemas distribuídos: fui bolsista de Iniciação Científica da FAPESP (proc. 2024/08973-2) no projeto SFI2 sobre o testbed FIBRE-NG da RNP, pesquisador de IC em visão computacional para classificação de grãos de café e monitor remunerado de Matemática Discreta.',
-      'Uma única RTX 5060 Ti de 16 GB (Blackwell sm_120, cu128). Sem cluster. Tudo que eu publico roda em uma GPU de estação de trabalho — e é por isso que cada sistema é desenhado para caber no orçamento, medir a própria incerteza e justificar cada chamada de modelo.',
+      'Ingressei na Pix Force em janeiro de 2025 como estagiário de visão computacional e passo a atuar como engenheiro celetista em tempo integral em janeiro de 2026, trabalhando com preparação de dados, treinamento, avaliação e implantação de detectores de objetos em vídeo. Paralelamente, curso o mestrado em Ciência da Computação na [UFSCar](https://www.ppgcc.dc.ufscar.br/) (RA 847647) sob orientação do [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ).',
+      'Durante o bacharelado em Sistemas de Informação na [UFV](https://www.crp.ufv.br/) (2022–2026), fui bolsista de Iniciação Científica da [FAPESP](https://bv.fapesp.br/) (processo 2024/08973-2) no projeto SFI2, com experimentos executados no testbed nacional FIBRE-NG da RNP sob coordenação do Prof. Dr. Flávio de Oliveira Silva. Na mesma instituição, desenvolvi pesquisa de iniciação científica e TCC sobre inspeção de grãos de café com redes convolucionais, Transformada Wavelet e CLAHE ([ComputerVision-CoffeeBean](/projeto/coffeebean)), além de atuar como monitor remunerado de Matemática Discreta sob orientação do Prof. Dr. Pedro Moises de Sousa.',
     ],
-    profileCardHeading: 'Ficha Cadastral & Identificação Bibliográfica',
+    profileCardHeading: 'Identificação & Registros',
     bioFields: [
       { label: 'Nome completo', value: 'Marcus Vinicius Diniz dos Reis' },
       {
@@ -208,18 +277,30 @@ export const UI: Record<Locale, UiStrings> = {
         value: 'REIS, M. V. D.; REIS, MARCUS VINICIUS DINIZ DOS; dos Reis, Marcus V. Diniz; REIS, Marcus Vinicius Diniz dos',
       },
       { label: 'Nascimento & Nacionalidade', value: '08/03/2004 · Brasileira' },
-      { label: 'Base de atuação', value: 'São Carlos, SP · Rio Paranaíba / Viçosa, MG — Brasil' },
-      { label: 'Vínculo na indústria', value: 'Pix Force Tecnologia Ltda. · Engenheiro de Visão Computacional (CLT, 40h)' },
-      { label: 'Vínculo acadêmico', value: 'PPGCC / UFSCar · Mestrado em Ciência da Computação (RA 847647)' },
-      { label: 'ID Currículo Lattes (CNPq)', value: '8185221944541336' },
-      { label: 'ORCID iD', value: '0009-0002-1464-431X' },
+      { label: 'Localização', value: 'São Carlos, SP · Rio Paranaíba / Viçosa, MG — Brasil' },
+      { label: 'Atuação na indústria', value: 'Pix Force Tecnologia Ltda. · Engenheiro de Visão Computacional (CLT, 40h)' },
+      {
+        label: 'Pós-graduação',
+        value: 'PPGCC / UFSCar · Mestrado em Ciência da Computação (RA 847647)',
+        href: 'https://www.ppgcc.dc.ufscar.br/',
+      },
+      {
+        label: 'Currículo Lattes (CNPq)',
+        value: '8185221944541336',
+        href: 'http://lattes.cnpq.br/8185221944541336',
+      },
+      {
+        label: 'ORCID iD',
+        value: '0009-0002-1464-431X',
+        href: 'https://orcid.org/0009-0002-1464-431X',
+      },
     ],
-    indicatorsHeading: 'Indicadores Quantitativos de Produção',
+    indicatorsHeading: 'Indicadores de Produção',
     indicators: [
       {
         value: '3+ anos',
-        label: 'Atuação em Visão Computacional',
-        detail: 'Pesquisa contínua desde 2023 e engenharia em produção desde jan/2025.',
+        label: 'Visão Computacional',
+        detail: 'Pesquisa iniciada em 2023 e atuação industrial desde jan/2025.',
       },
       {
         value: '1',
@@ -228,26 +309,26 @@ export const UI: Record<Locale, UiStrings> = {
       },
       {
         value: '3',
-        label: 'Artigos Completos em Anais',
-        detail: 'Publicados no WSIS 2024 e XV WSIS 2025 com revisão por pares.',
+        label: 'Artigos em Anais',
+        detail: 'Artigos completos publicados no WSIS 2024 e no XV WSIS 2025 (SBC).',
       },
       {
         value: '7',
-        label: 'Eventos, Oficinas & Exposições',
-        detail: 'Apresentações em WVC, WSIS, Mostra de Jogos Digitais e Mostra de Profissões.',
+        label: 'Eventos & Exposições',
+        detail: 'Apresentações no WVC, WSIS, Mostra de Jogos Digitais e Mostra de Profissões.',
       },
       {
         value: '5',
-        label: 'Prêmios, Bolsas & Distinções',
-        detail: 'Melhor Artigo, 1º Lugar Hackathon CV, Bolsa FAPESP, Melhor Pôster e Maratona.',
+        label: 'Prêmios & Bolsas',
+        detail: 'Melhor Artigo WSIS, 1º Lugar Hackathon WVC, Bolsa FAPESP, Melhor Pôster e Maratona.',
       },
       {
         value: 'h = 1',
-        label: 'Índice Bibliométrico',
-        detail: 'Google Scholar (ID 5jCt_wYAAAAJ · citação registrada em 2025).',
+        label: 'Google Scholar',
+        detail: 'Citações indexadas no perfil acadêmico (ID 5jCt_wYAAAAJ).',
       },
     ],
-    experienceHeading: 'Atuação Profissional (Indústria)',
+    experienceHeading: 'Experiência Profissional',
     experience: [
       {
         period: '01/2026 — atual',
@@ -255,7 +336,7 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Pix Force Tecnologia Ltda.',
         regime: 'Celetista (CLT) · 40h semanais',
         detail:
-          'Desenvolvimento, implantação e otimização de modelos de visão computacional com ênfase em detecção de objetos e análise de dados do mundo real: preparação e curadoria de dados, treinamento, avaliação rigorosa de modelos e integração de pipelines de inferência a sistemas em produção.',
+          'Desenvolvimento, treinamento, avaliação e implantação de modelos de visão computacional voltados à detecção de objetos e análise de vídeo em ambientes de produção.',
       },
       {
         period: '01/2025 — 12/2025',
@@ -263,26 +344,28 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Pix Force Tecnologia Ltda.',
         regime: 'Estágio · 30h semanais',
         detail:
-          'Implementação, experimentação e validação de modelos de deep learning e rotinas de processamento de imagens e vídeo para soluções industriais de inspeção e monitoramento.',
+          'Implementação e validação de pipelines de processamento de imagens e modelos de deep learning para inspeção e monitoramento industrial.',
       },
     ],
-    educationHeading: 'Formação Acadêmica & Titulação',
+    educationHeading: 'Formação Acadêmica',
     education: [
       {
         period: '2026 — 2028',
         role: 'Mestrado em Ciência da Computação',
         org: 'Universidade Federal de São Carlos (UFSCar) · São Carlos, SP',
+        orgHref: 'https://www.ppgcc.dc.ufscar.br/',
         regime: 'Pós-Graduação Stricto Sensu · RA 847647',
         detail:
-          'Orientador: Prof. Dr. Jurandy Gomes de Almeida Junior. Pesquisa em adaptação de domínio não supervisionada (UDA) e detectores de objetos de vocabulário aberto sob deslocamento composto.',
+          'Orientador: [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ). Linha de pesquisa em adaptação de domínio não supervisionada e [detectores de vocabulário aberto](/projeto/uda-ovd).',
       },
       {
         period: '2022 — 2026',
         role: 'Bacharelado em Sistemas de Informação',
         org: 'Universidade Federal de Viçosa (UFV) · Campus Rio Paranaíba, MG',
+        orgHref: 'https://www.crp.ufv.br/',
         regime: 'Graduação Superior',
         detail:
-          'TCC: "Análise da qualidade de grãos de café usando redes neurais convolucionais com técnicas como ensemble". Orientador: Prof. Dr. Pedro Moises de Sousa.',
+          'TCC sobre [análise da qualidade de grãos de café usando CNNs e ensemble](/projeto/coffeebean), orientado pelo Prof. Dr. Pedro Moises de Sousa.',
       },
       {
         period: '2020 — 2021',
@@ -292,47 +375,50 @@ export const UI: Record<Locale, UiStrings> = {
         detail: 'Conclusão do ensino médio regular.',
       },
     ],
-    academicProjectsHeading: 'Projetos Formais de Pesquisa & Ensino (Lattes)',
+    academicProjectsHeading: 'Projetos de Pesquisa & Ensino (Lattes)',
     academicProjects: [
       {
         period: '2024 — 2025',
-        kind: 'Projeto de Pesquisa · Bolsa IC FAPESP',
+        kind: 'Pesquisa · Bolsa IC FAPESP',
         code: 'FAPESP proc. 2024/08973-2 · Projeto SFI2',
         title:
           'Construção e validação de um agente de Aprendizado por Reforço flexível para Arquiteturas de Fatiamento de Redes',
+        href: 'https://doi.org/10.1007/978-3-031-87772-8_8',
         org: 'UFV & Testbed FIBRE-NG da Rede Nacional de Ensino e Pesquisa (RNP)',
         advisor: 'Coordenador: Prof. Dr. Flávio de Oliveira Silva · Integrante: Rodrigo Moreira',
         detail:
-          'Desenvolvimento e validação experimental no testbed FIBRE-NG da RNP de abordagens de aprendizado de máquina e monitoramento cross-domain voltadas à garantia de SLA em fatias de rede sobre arquiteturas de microsserviços conteinerizados. Resultou no capítulo internacional publicado pela Springer Nature (2025).',
+          'Experimentos no testbed nacional FIBRE-NG da RNP com aprendizado de máquina e monitoramento cross-domain para garantia de SLA em fatias de rede sobre microsserviços conteinerizados. Resultou no [capítulo publicado pela Springer Nature (2025)](https://doi.org/10.1007/978-3-031-87772-8_8).',
       },
       {
         period: '2024 — 2025',
-        kind: 'Projeto de Pesquisa · Iniciação Científica',
+        kind: 'Pesquisa · Iniciação Científica',
         code: 'IC Visão Computacional · UFV',
         title:
           'Análise da qualidade de grãos de café usando redes neurais convolucionais com técnicas como wavelet',
+        href: 'https://doi.org/10.5753/wsis.2024.33669',
         org: 'Universidade Federal de Viçosa (UFV)',
         advisor: 'Coordenador: Prof. Dr. Pedro Moises de Sousa',
         detail:
-          'Coleta e curadoria de bancos de dados públicos, pré-processamento morfológico, realce de contraste local (CLAHE), decomposição por Transformada Wavelet Discreta e treinamento/validação de arquiteturas CNN e comitês (ensemble).',
+          'Curadoria de bases públicas, aplicação de CLAHE e Transformada Wavelet Discreta e comparação de arquiteturas CNN e comitês em PyTorch ([repositório CoffeeBean](/projeto/coffeebean) e [artigo no WSIS 2024](https://doi.org/10.5753/wsis.2024.33669)).',
       },
       {
         period: '2024',
-        kind: 'Projeto de Ensino · Monitoria Acadêmica',
+        kind: 'Ensino · Monitoria Acadêmica',
         code: 'Bolsa de Monitoria por Processo Seletivo · UFV',
         title: 'Monitoria Remunerada da Disciplina de Matemática Discreta',
         org: 'Universidade Federal de Viçosa (UFV)',
         advisor: 'Coordenador: Prof. Dr. Pedro Moises de Sousa',
         detail:
-          'Auxílio docente nas atividades de ensino de lógica formal, teoria dos conjuntos, relações, indução matemática e combinatória, com atendimento a estudantes e elaboração/correção de exercícios.',
+          'Atendimento a alunos e apoio docente em lógica proposicional, teoria dos conjuntos, relações, indução matemática e combinatória.',
       },
     ],
-    awardsHeading: 'Prêmios, Bolsas & Distinções Acadêmicas',
+    awardsHeading: 'Prêmios, Bolsas & Distinções',
     awards: [
       {
         year: '2025',
         title: 'Prêmio de Melhor Artigo',
-        venue: 'XV Workshop de Sistemas de Informação (WSIS), UFV',
+        venue: 'XV Workshop de Sistemas de Informação (WSIS), UFV / SBC',
+        href: 'https://doi.org/10.5753/wsis.2025.15733',
       },
       {
         year: '2024',
@@ -341,8 +427,9 @@ export const UI: Record<Locale, UiStrings> = {
       },
       {
         year: '2024',
-        title: 'Bolsa de Iniciação Científica FAPESP (Mérito Acadêmico)',
+        title: 'Bolsa de Iniciação Científica FAPESP',
         venue: 'Fundação de Amparo à Pesquisa do Estado de São Paulo (proc. 2024/08973-2)',
+        href: 'https://doi.org/10.1007/978-3-031-87772-8_8',
       },
       {
         year: '2023',
@@ -355,23 +442,25 @@ export const UI: Record<Locale, UiStrings> = {
         venue: 'Universidade Federal de Viçosa (UFV)',
       },
     ],
-    eventsHeading: 'Participação em Eventos, Congressos, Oficinas & Exposições',
+    eventsHeading: 'Eventos, Congressos, Oficinas & Exposições',
     events: [
       {
         year: '2025',
-        kind: 'Oficina · Apresentação de Artigo Premiado',
+        kind: 'Oficina · Artigo Premiado',
         event: 'XV Workshop de Sistemas de Informação (WSIS 2025)',
         work: 'Unsupervised Specialization of Visual Subclasses Using K-Means in YOLO-Based Detection Pipelines',
+        href: 'https://doi.org/10.5753/wsis.2025.15733',
       },
       {
         year: '2025',
-        kind: 'Oficina · Apresentação de Artigo Completo',
+        kind: 'Oficina · Artigo Completo',
         event: 'XV Workshop de Sistemas de Informação (WSIS 2025)',
         work: 'Automated Correction of Multiple Choice Tests Using Computer Vision',
+        href: 'https://doi.org/10.5753/wsis.2025.15732',
       },
       {
         year: '2024',
-        kind: 'Oficina & Hackathon · 1º Lugar Geral',
+        kind: 'Oficina & Hackathon · 1º Lugar',
         event: 'Workshop de Visão Computacional (WVC 2024)',
         work: 'Protótipo de Solução para Identificação dos Times aos Quais os Jogadores Pertencem em Vídeos de Esportes',
       },
@@ -379,17 +468,18 @@ export const UI: Record<Locale, UiStrings> = {
         year: '2024',
         kind: 'Exposição Tecnológica',
         event: 'Mostra de Jogos Digitais (UFV)',
-        work: 'Alfabeto Mágico — Jogo digital educativo interativo',
+        work: 'Alfabeto Mágico — Jogo digital educativo',
       },
       {
         year: '2024',
         kind: 'Oficina · Apresentação Oral (1º Autor)',
         event: 'Workshop de Sistemas de Informação (WSIS 2024)',
         work: 'Quality Assessment of Coffee Beans Using Convolutional Neural Networks with Wavelet and CLAHE Techniques',
+        href: 'https://doi.org/10.5753/wsis.2024.33669',
       },
       {
         year: '2023',
-        kind: 'Oficina · Apresentação de Pôster Premiado',
+        kind: 'Oficina · Pôster Premiado',
         event: 'Workshop de Sistemas de Informação (WSIS 2023)',
         work: 'Desenvolvimento de IA: Análise da qualidade de grãos de café usando redes neurais convolucionais com técnicas como wavelet',
       },
@@ -400,7 +490,7 @@ export const UI: Record<Locale, UiStrings> = {
         work: 'Introdução ao ChatBot — Demonstração interativa de sistemas conversacionais',
       },
     ],
-    skillsHeading: 'Matriz de Competências Técnicas',
+    skillsHeading: 'Competências Técnicas',
     skillGroups: [
       {
         category: 'Visão Computacional & Processamento de Sinais',
@@ -418,7 +508,7 @@ export const UI: Record<Locale, UiStrings> = {
         ],
       },
       {
-        category: 'Deep Learning & Modelos Multimodais (VLMs)',
+        category: 'Deep Learning & Modelos Visão-Linguagem',
         items: [
           'PyTorch',
           'TensorFlow / Keras',
@@ -462,79 +552,114 @@ export const UI: Record<Locale, UiStrings> = {
       },
       {
         language: 'Inglês',
-        level: 'Proficiência Técnica & Científica',
-        detail: 'Compreende bem · Lê bem · Escreve bem · Fala intermediária (autoria de artigos e documentação em inglês)',
+        level: 'Leitura e Escrita Científica',
+        detail: 'Compreende bem · Lê bem · Escreve bem · Fala intermediária',
       },
     ],
-    contactHeading: 'Perfis Acadêmicos, Identificadores & Contato',
+    contactHeading: 'Perfis Acadêmicos & Contato',
     contact: [
-      { label: 'GitHub', value: '@marcus-vreis', href: 'https://github.com/marcus-vreis' },
-      { label: 'LinkedIn', value: 'in/marcus-vinicius-diniz', href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/' },
-      { label: 'Google Scholar', value: '5jCt_wYAAAAJ (h = 1)', href: 'https://scholar.google.com/citations?user=5jCt_wYAAAAJ' },
-      { label: 'ORCID', value: '0009-0002-1464-431X', href: 'https://orcid.org/0009-0002-1464-431X' },
-      { label: 'Currículo Lattes', value: 'CNPq 8185221944541336', href: 'http://lattes.cnpq.br/8185221944541336' },
-      { label: 'E-mail', value: 'marcusvinicius0083@gmail.com', href: 'mailto:marcusvinicius0083@gmail.com' },
+      { icon: 'github', label: 'GitHub', value: '@marcus-vreis', href: 'https://github.com/marcus-vreis' },
+      {
+        icon: 'scholar',
+        label: 'Google Scholar',
+        value: '5jCt_wYAAAAJ (h = 1)',
+        href: 'https://scholar.google.com/citations?user=5jCt_wYAAAAJ',
+      },
+      {
+        icon: 'linkedin',
+        label: 'LinkedIn',
+        value: 'in/marcus-vinicius-diniz',
+        href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/',
+      },
+      {
+        icon: 'orcid',
+        label: 'ORCID',
+        value: '0009-0002-1464-431X',
+        href: 'https://orcid.org/0009-0002-1464-431X',
+      },
+      {
+        icon: 'lattes',
+        label: 'Currículo Lattes',
+        value: 'CNPq 8185221944541336',
+        href: 'http://lattes.cnpq.br/8185221944541336',
+      },
+      {
+        icon: 'email',
+        label: 'E-mail',
+        value: 'marcusvinicius0083@gmail.com',
+        href: 'mailto:marcusvinicius0083@gmail.com',
+      },
     ],
     name: 'Marcus Vinicius',
     fullName: 'Marcus Vinicius Diniz dos Reis',
     citationShort: 'REIS, M. V. D.',
+    heroRolePrimary: 'Engenheiro de Visão Computacional · Pix Force',
+    heroRoleSecondary: 'Mestrando em Ciência da Computação · UFSCar',
+    heroDegreeLine: 'Bacharel em Sistemas de Informação · UFV',
     birthAndNationality: '08/03/2004 · Brasil',
-    locationLabel: 'São Carlos, SP · Viçosa / Rio Paranaíba, MG',
-    portraitAlt: 'Console esquemático de calibração óptica e telemetria',
-    authorPhotoAlt: 'Retrato de Marcus Vinicius Diniz dos Reis',
-    projectsHeading: 'Instrumentos & Projetos Públicos',
+    locationLabel: 'São Carlos, SP · MG, Brasil',
+    portraitAlt: 'Painel de telemetria e decisões arquiteturais dos repositórios',
+    authorPhotoAlt: 'Foto de perfil de Marcus Vinicius Diniz dos Reis',
+    projectsHeading: 'Projetos & Repositórios Públicos',
     projectsSubtitle:
-      'Oito repositórios públicos no GitHub. O estado operacional e a contagem de commits vêm do instantâneo diário commitado no repositório — o build nunca consulta a rede.',
+      'Oito repositórios open-source no [GitHub (@marcus-vreis)](https://github.com/marcus-vreis), acompanhados do diagrama do pipeline e das métricas colhidas automaticamente.',
     researchHeading: 'Pesquisa de Mestrado · UFSCar',
     researchSubtitle:
-      'Estudo empírico e autotreinamento professor–aluno sob deslocamento de domínio (COCO-C, Foggy Cityscapes e BDD100K).',
+      'Estudo empírico sobre filtragem e completação de pseudo-rótulos sob deslocamento de domínio (COCO-C, Foggy Cityscapes e BDD100K).',
     publicationsHeading: 'Publicações Científicas',
     publicationsSubtitle:
-      'Trabalhos completos com revisão por pares em capítulo de livro internacional (Springer Nature) e anais de conferências.',
+      'Capítulo de livro internacional (Springer Nature) e artigos completos em anais (SBC / WSIS). Clique no título ou no DOI para abrir a publicação.',
+    doiLabel: 'DOI',
     trajectoryHeading: 'Histórico Profissional & Acadêmico',
-    hardwareHeading: 'Restrição de Bancada',
-    hardwareSpec: '1× NVIDIA RTX 5060 Ti · 16 GB VRAM · sm_120 (cu128)',
-    hardwareDetail:
-      'Orçamento computacional fixo: todo experimento, treino ou agente local é projetado para rodar de ponta a ponta numa única GPU de estação de trabalho.',
-    navProjects: 'Instrumentos',
+    navProjects: 'Projetos',
     navResearch: 'Pesquisa',
     navPublications: 'Publicações',
-    navAbout: 'Dossiê',
-    heroBadge: 'CADERNO DE ENGENHARIA // VISÃO COMPUTACIONAL',
+    navAbout: 'Currículo',
+    heroBadge: 'MARCUS VINICIUS DINIZ DOS REIS // PORTFÓLIO & PESQUISA',
     heroAffiliation: 'UFSCar M.Sc. (RA 847647) · Pix Force · UFV B.Sc.',
-    telemetryHeading: 'Telemetria dos Repositórios',
-    telemetrySnapshotLabel: 'Instantâneo UTC',
-    telemetryCommitsLabel: 'Commits / 90 dias',
-    telemetryActiveLabel: 'Projetos ativos',
-    telemetryReleaseLabel: 'Última release',
-    pillarsHeading: 'Três Costuras de Engenharia',
+    telemetryHeading: 'Atividade nos Repositórios',
+    telemetrySnapshotLabel: 'Coleta UTC',
+    telemetryCommitsLabel: 'Commits (90d)',
+    telemetryActiveLabel: 'Repositórios ativos',
+    telemetryReleaseLabel: 'Última release publicada',
+    pillarsHeading: 'Recortes de Arquitetura',
     pillars: [
       {
         id: 'seam',
-        code: 'COSTURA 01 // GEOMETRIA vs. SEMÂNTICA',
-        title: 'Pixels só vão até onde a geometria exige',
+        code: 'NOTA 01 // GEOMETRIA × SEMÂNTICA',
+        title: 'Separação entre coordenadas métricas e chamadas de modelo',
         formula: 'I(u,v) → H⁻¹ → (x, y, t) ∈ ℝ² × ℝ',
         summary:
-          'Em custody-watch, tudo à direita do plano de solo consome apenas metros e segundos; no VampireAI (ADR-022), funções puras em NumPy resolvem cartas e minimapa em 3,3 ms para que o VLM decida só semântica (1–2× por turno).',
-        projects: 'custody-watch · VampireAI · ImageLab',
+          'No [custody-watch](/projeto/custody-watch), a máquina de estados consome apenas metros e segundos projetados no plano do solo. No [VampireAI](/projeto/vampireai) (ADR-022), funções em NumPy extraem cartas e rotas no minimapa em 3,3 ms antes de acionar o VLM (1 a 2 vezes por turno).',
+        projectLinks: [
+          { label: 'custody-watch', href: '/projeto/custody-watch' },
+          { label: 'VampireAI', href: '/projeto/vampireai' },
+          { label: 'ImageLab', href: '/projeto/imagelab' },
+        ],
       },
       {
         id: 'rigor',
-        code: 'COSTURA 02 // PROVENIÊNCIA & RECUSA',
-        title: 'O número reportado precisa ser defensável',
+        code: 'NOTA 02 // REPRODUTIBILIDADE & AVALIAÇÃO',
+        title: 'Réplicas multi-seed e validação de protocolo',
         formula: 'μ ± CI₉₅(bootstrap, K=5 seeds) · run.json',
         summary:
-          'No VisionForge, toda execução grava ambiente e hiperparâmetros em run.json e compara modelos com réplicas multi-seed. No custody-watch, evaluate.py recusa calcular P_miss a 25 s quando o maior abandono do CAVIAR dura 13,3 s.',
-        projects: 'VisionForge · custody-watch · CoffeeBean',
+          'No [VisionForge](/projeto/visionforge), cada treino registra ambiente e hiperparâmetros em `run.json` e compara modelos com intervalos de confiança multi-seed. No [custody-watch](/projeto/custody-watch), o script `evaluate.py` interrompe o cálculo de `P_miss` a 25 s no CAVIAR porque o maior abandono anotado dura 13,3 s.',
+        projectLinks: [
+          { label: 'VisionForge', href: '/projeto/visionforge' },
+          { label: 'custody-watch', href: '/projeto/custody-watch' },
+          { label: 'CoffeeBean', href: '/projeto/coffeebean' },
+        ],
       },
       {
         id: 'domain',
-        code: 'COSTURA 03 // DESVIO DE DOMÍNIO',
-        title: 'Completar supera filtrar quando o recall colapsa',
+        code: 'NOTA 03 // DESLOCAMENTO DE DOMÍNIO',
+        title: 'Completação de pseudo-rótulos sob queda de recall',
         formula: 'Ŷ = Y_prof(τ) ∪ Y_GDINO(c ∉ Y_prof) → +0,077 Recall',
         summary:
-          'Sob neblina e noite, filtros de recorte (CLIP/SigLIP) pioram o AUPRC em 100% das condições porque o professor sofre colapso de recall. Completar pseudo-rótulos com Grounding DINO recupera os objetos perdidos.',
-        projects: 'Mestrado UFSCar (COCO-C · Foggy · BDD100K)',
+          'Na [pesquisa de mestrado na UFSCar](/projeto/uda-ovd), filtros de recorte (CLIP e SigLIP) reduziram o AUPRC em 100% dos cenários avaliados porque o detector professor sofre colapso de recall. A união com detecções do Grounding DINO recupera +0,077 de recall e +0,023 de F1.',
+        projectLinks: [
+          { label: 'Pesquisa UFSCar (UDA + OVD)', href: '/projeto/uda-ovd' },
+        ],
       },
     ],
     filterAll: 'Todos',
@@ -544,13 +669,13 @@ export const UI: Record<Locale, UiStrings> = {
     starsSuffix: 'estrelas',
     inspectLabel: 'Ficha técnica',
     schematicLabel: 'Esquemático arquitetural',
-    invariantLabel: 'Invariante de arquitetura',
+    invariantLabel: 'Decisão de projeto',
     statusLabel: 'Estado operacional',
     commits90dLabel: 'Atividade (90d)',
     releaseLabel: 'Versão publicada',
     figuresLabel: 'Capturas de interface',
-    prevProjectLabel: 'Instrumento anterior',
-    nextProjectLabel: 'Próximo instrumento',
+    prevProjectLabel: 'Projeto anterior',
+    nextProjectLabel: 'Próximo projeto',
     moods: {
       formado: 'formado',
       'a-todo-vapor': 'a todo vapor',
@@ -565,15 +690,15 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Config(Pydantic) → {Seed s₁..s₅} → Bootstrap CI₉₅ + run.json',
         stages: ['Pydantic v2 Config', '5× Seeds · GPU cu128', 'IC 95% + run.json'],
         invariant:
-          'Falhar antes de alocar GPU (ADR-002) e gravar proveniência completa em run.json (ADR-013) com intervalo de confiança multi-seed.',
+          'Validação de configuração antes de alocar GPU (ADR-002) e registro de proveniência em run.json (ADR-013) com intervalo de confiança multi-seed.',
         metric: '5 famílias de tarefa · 121 ADRs · v0.17.0',
       },
       custodia: {
-        code: 'FIG. 02 // COSTURA PIXELS → METROS & SEGUNDOS',
+        code: 'FIG. 02 // FRONTEIRA PIXELS → METROS & SEGUNDOS',
         formula: 'YOLO26(px) → GroundPlane(H⁻¹) ║ (x,y,t) → CustodyFSM → Queue',
-        stages: ['YOLO26 + Homografia', 'Costura (x, y, t) m·s', 'CustodyFSM + Fila'],
+        stages: ['YOLO26 + Homografia', 'Plano (x, y, t) m·s', 'CustodyFSM + Fila'],
         invariant:
-          'Zero reconhecimento facial (bloqueado em pré-commit). Posse é depósito espacial no BagRegistry; evaluate.py recusa protocolo inexprimível.',
+          'Sem reconhecimento facial (bloqueado em pré-commit). Posse modelada como depósito espacial no BagRegistry; evaluate.py valida o protocolo de teste.',
         metric: '397 testes · 0 falsos alarmes CAVIAR · 600k→fila',
       },
       fliperama: {
@@ -581,7 +706,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Frame(78ms) → [CV NumPy 3,3ms: Cartas/BFS/Glifos] + [VLM 7B: 1–2×/turno]',
         stages: ['CV Pura (3,3 ms)', 'Qwen2.5-VL 7B (Ollama)', 'DS4 Virtual (vgamepad)'],
         invariant:
-          'ADR-022: nunca pedir contagem, coordenada ou rota ao VLM. Glifos de mana aprendidos em runtime (digits.py) e travessia por gamepad.',
+          'ADR-022: visão em NumPy extrai contagens, coordenadas e rotas no minimapa; o VLM recebe apenas recortes semânticos e decide a jogada.',
         metric: '3,3 ms slots · 1,6 ms HUD · 1–2 chamadas VLM/turno',
       },
       estacao: {
@@ -589,15 +714,15 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Coletores [N₁..Nₖ] → RabbitMQ(Batch + Token) → Core Idempotente → WS/REST',
         stages: ['Coletores em Lote', 'RabbitMQ + Token', 'Core → WebSocket'],
         invariant:
-          'Desacoplamento por duas filas RabbitMQ e token de idempotência por lote para absorver reentregas sem duplicar leituras.',
-        metric: 'Dupla fila RabbitMQ · Docker Compose · Tempo real',
+          'Coleta e agregação separadas por duas filas do RabbitMQ, com token de idempotência por lote para descartar entregas duplicadas.',
+        metric: 'Dupla fila RabbitMQ · Docker Compose · WebSocket',
       },
       scanner: {
-        code: 'FIG. 05 // CADEIA DE SINAL ESPACIAL & FREQUÊNCIA',
+        code: 'FIG. 05 // CADEIA ESPACIAL, MORFOLÓGICA & FREQUÊNCIA',
         formula: 'I(x,y) → [Sobel / Morfologia / Otsu τ*] ∥ [ℱ{I}(u,v) FFT]',
         stages: ['Domínio Espacial', 'Espectro FFT ℱ(u,v)', 'Otsu τ* & Morfologia'],
         invariant:
-          'Isolamento estrito entre eventos de interface (main.py) e os 6 módulos matemáticos puros de processamento digital de imagens.',
+          'Despacho de eventos da interface gráfica (main.py) isolado dos 6 módulos matemáticos de processamento de imagens.',
         metric: '6 módulos puros · Espacial + FFT + Morfologia',
       },
       cafeteira: {
@@ -605,7 +730,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'RGB → CLAHE → DWT {LL, LH, HL, HH} → Ensemble CNN → Classe',
         stages: ['Realce CLAHE', 'Sub-bandas Wavelet', 'Ensemble de CNNs'],
         invariant:
-          'Fusão de realce local de contraste (CLAHE) e textura multirresolução (Wavelet) antes da votação entre arquiteturas convolucionais.',
+          'Combinação de realce adaptativo de contraste (CLAHE) e sub-bandas Wavelet antes da votação entre redes convolucionais.',
         metric: 'Artigo 1º autor WSIS 2024 · TCC UFV',
       },
       plotter: {
@@ -613,7 +738,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Silhueta → Descritores(scikit-image) → Projeção → k-NN (k=3) vs. SVM',
         stages: ['Silhueta MPEG7', 'Descritores Geométricos', 'Fronteira k-NN / SVM'],
         invariant:
-          'Extração explícita de descritores morfológicos de contorno para contrastar decisão local (k-NN) e margem máxima (SVM).',
+          'Extração de descritores morfológicos de contorno e região para comparar fronteiras por vizinhança (k-NN) e margem máxima (SVM).',
         metric: 'Benchmark MPEG7 · Acurácia, Precisão, Recall, F1',
       },
       esteira: {
@@ -621,7 +746,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Entrada {Cresc, Decresc, Rand} × N ∈ [10¹, 10⁶] → Pivô → T(N)',
         stages: ['N = 10¹..10⁶ (3 regimes)', '4 Pivôs QuickSort + Heap', 'Curva Empírica T(N)'],
         invariant:
-          'Medição direta do colapso O(N²) sob entrada ordenada e preservação do regime O(N log N) com pivô por mediana de três e aleatório.',
+          'Medição empírica da transição para O(N²) sob vetores ordenados com pivô fixo e manutenção de O(N log N) com mediana de três e pivô aleatório.',
         metric: '7 algoritmos C++ · N até 1.000.000 · 3 distribuições',
       },
       nevoeiro: {
@@ -629,45 +754,53 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Alvo(β=0,02) → Prof(Colapso Recall) ∪ GDINO(Completação) → +0,023 F1',
         stages: ['Desvio (COCO-C / Foggy)', 'Teto: Filtro × Completação', 'Prof ∪ Grounding DINO'],
         invariant:
-          'Achados A1–A3: filtrar recortes com CLIP/SigLIP degrada o AUPRC em 100% dos casos; completar objetos perdidos com Grounding DINO recupera o recall.',
-        metric: '+0,077 Recall · +0,023 F1 · 1× RTX 5060 Ti',
+          'Achados A1–A3: filtros de recorte (CLIP e SigLIP) reduzem o AUPRC em 100% dos casos; a completação com Grounding DINO recupera o recall do professor.',
+        metric: '+0,077 Recall · +0,023 F1 · COCO-C / Foggy / BDD100K',
       },
     },
     publications: [
       {
         year: '2025',
-        venue: 'Springer Nature · Lecture Notes on Data Engineering and Communications Technologies (1 ed., pp. 89–100)',
+        venue: 'Springer Nature · Lecture Notes in Networks and Systems / Data Engineering and Communications Technologies (pp. 89–100)',
         badge: 'Capítulo Internacional · 1º Autor',
         title:
           'Estimating Application Performance in Container-Based Environments: A Cross-Domain Monitoring Approach',
         authors: 'dos REIS, Marcus V. Diniz; MOREIRA, Rodrigo; RODRIGUES MOREIRA, Larissa F.; de OLIVEIRA SILVA, Flávio',
-        note: 'Resultante da bolsa de IC FAPESP (proc. 2024/08973-2) no projeto SFI2, validado no testbed FIBRE-NG da RNP sob orçamento computacional controlado.',
+        doi: '10.1007/978-3-031-87772-8_8',
+        href: 'https://doi.org/10.1007/978-3-031-87772-8_8',
+        note: 'Resultante da bolsa de IC [FAPESP (proc. 2024/08973-2)](https://bv.fapesp.br/) no projeto SFI2, com validação experimental no testbed nacional FIBRE-NG da RNP.',
       },
       {
         year: '2025',
-        venue: 'Anais do XV Workshop de Sistemas de Informação (WSIS 2025, Rio Paranaíba, pp. 11–19)',
+        venue: 'Anais do XV Workshop de Sistemas de Informação (WSIS 2025, SBC, pp. 11–19)',
         badge: 'Prêmio de Melhor Artigo',
         title:
           'Unsupervised Specialization of Visual Subclasses Using K-Means in YOLO-Based Detection Pipelines',
         authors: 'MOREIRA, Pedro Henrique Campos; FERREIRA, Bianca Panacho; REIS, Marcus Vinicius Diniz dos',
-        note: 'Especialização não supervisionada de subclasses visuais dentro de pipelines de detecção YOLO sem exigir anotação adicional.',
+        doi: '10.5753/wsis.2025.15733',
+        href: 'https://doi.org/10.5753/wsis.2025.15733',
+        note: 'Descoberta não supervisionada de subclasses visuais via agrupamento K-Means sobre recortes extraídos por detectores YOLO.',
       },
       {
         year: '2025',
-        venue: 'Anais do XV Workshop de Sistemas de Informação (WSIS 2025, Rio Paranaíba, pp. 1–10)',
+        venue: 'Anais do XV Workshop de Sistemas de Informação (WSIS 2025, SBC, pp. 1–10)',
         badge: 'Artigo Completo',
         title: 'Automated Correction of Multiple Choice Tests Using Computer Vision',
         authors: 'MOREIRA, Pedro Henrique Campos; FERREIRA, Bianca Panacho; REIS, Marcus Vinicius Diniz dos',
-        note: 'Pipeline de visão computacional para leitura e correção óptica de cartões de resposta sob condições reais de captura fora de laboratório.',
+        doi: '10.5753/wsis.2025.15732',
+        href: 'https://doi.org/10.5753/wsis.2025.15732',
+        note: 'Pipeline de visão computacional para alinhamento geométrico e correção óptica de cartões de resposta capturados por câmera móvel.',
       },
       {
         year: '2024',
-        venue: 'Anais do Workshop de Sistemas de Informação (WSIS 2024, pp. 33–38)',
+        venue: 'Anais do XIV Workshop de Sistemas de Informação (WSIS 2024, SBC, pp. 33–38)',
         badge: 'Artigo Completo · 1º Autor',
         title:
           'Quality Assessment of Coffee Beans Using Convolutional Neural Networks with Wavelet and CLAHE Techniques',
         authors: 'REIS, Marcus Vinicius Diniz dos; SOUSA, Pedro Moises de',
-        note: 'Origem da linha experimental do TCC: combina realce CLAHE e decomposição Wavelet com redes convolucionais na classificação de grãos (trabalho com citação no Google Scholar).',
+        doi: '10.5753/wsis.2024.33669',
+        href: 'https://doi.org/10.5753/wsis.2024.33669',
+        note: 'Avalia o impacto de realce CLAHE e Transformada Wavelet Discreta na classificação de grãos de café com CNNs ([código no repositório CoffeeBean](/projeto/coffeebean)).',
       },
     ],
     trajectory: [
@@ -677,12 +810,13 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Pix Force Tecnologia Ltda.',
         regime: 'Celetista (CLT) · 40h/semana',
         detail:
-          'Desenvolvimento, implantação e otimização de modelos de detecção de objetos e inferência sobre fluxos de vídeo e dados industriais em produção.',
+          'Desenvolvimento, treinamento e implantação de modelos de detecção de objetos e inferência sobre fluxos de vídeo em produção.',
       },
       {
         period: '2026 — 2028',
         role: 'Mestrado em Ciência da Computação',
         org: 'Universidade Federal de São Carlos (UFSCar)',
+        orgHref: 'https://www.ppgcc.dc.ufscar.br/',
         regime: 'PPGCC · RA 847647',
         detail:
           'Orientador: Prof. Dr. Jurandy Gomes de Almeida Junior. Pesquisa em adaptação de domínio e detectores de objetos de vocabulário aberto.',
@@ -701,42 +835,51 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Projeto SFI2 · Testbed FIBRE-NG (RNP)',
         regime: 'Pesquisa Financiada FAPESP',
         detail:
-          'Coordenador: Prof. Dr. Flávio de Oliveira Silva. Agentes de Aprendizado por Reforço e monitoramento cross-domain em ambientes conteinerizados.',
+          'Coordenador: Prof. Dr. Flávio de Oliveira Silva. Aprendizado por reforço e monitoramento cross-domain em ambientes conteinerizados.',
       },
       {
         period: '2022 — 2026',
         role: 'Bacharelado em Sistemas de Informação',
         org: 'Universidade Federal de Viçosa (UFV)',
+        orgHref: 'https://www.crp.ufv.br/',
         regime: 'Graduação · Campus Rio Paranaíba',
         detail:
-          'TCC orientado pelo Prof. Dr. Pedro Moises de Sousa sobre análise da qualidade de grãos de café com CNNs e ensemble. Monitor remunerado de Matemática Discreta (2024).',
+          'TCC orientado pelo Prof. Dr. Pedro Moises de Sousa sobre classificação de grãos de café com CNNs e ensemble. Monitor remunerado de Matemática Discreta (2024).',
       },
     ],
   },
   en: {
-    siteTitle: 'Marcus Vinicius — computer vision & ML engineering',
+    siteTitle: 'Marcus Vinicius Diniz dos Reis · Computer Vision & ML Engineering',
     siteDescription:
-      'Portfolio and academic-engineering dossier of Marcus Vinicius Diniz dos Reis: computer vision, object detection, M.Sc. research at UFSCar and open-source software.',
-    thesis: 'I build instruments for seeing.',
-    intro:
-      'Computer-vision engineer at Pix Force and M.Sc. candidate in Computer Science at UFSCar. Every entry in this notebook documents the architecture, the mathematical seam and the live telemetry of my public repositories.',
+      'Portfolio and academic CV of Marcus Vinicius Diniz dos Reis: computer vision, object detection, M.Sc. research at UFSCar, and open-source software.',
+    thesis: 'Computer vision, object detection, and machine-learning systems.',
+    intro: [
+      'I am a computer-vision engineer at Pix Force and an M.Sc. student in Computer Science at [PPGCC/UFSCar](https://www.ppgcc.dc.ufscar.br/), advised by [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ). My [M.Sc. research](/en/project/uda-ovd) studies how object detectors and teacher-student self-training behave under severe domain shift (fog, night scenes, and synthetic corruptions).',
+      'I hold a B.Sc. in Information Systems from the [Federal University of Viçosa (UFV)](https://www.crp.ufv.br/) and was a [FAPESP](https://bv.fapesp.br/) undergraduate research fellow on the SFI2 project. My open-source work includes [VisionForge](/en/project/visionforge) (archived on [Zenodo](https://doi.org/10.5281/zenodo.23425765) and published on [PyPI](https://pypi.org/project/visionforge-studio/)), the airport luggage custody tracker [custody-watch](/en/project/custody-watch), and the multimodal game agent [VampireAI](/en/project/vampireai).',
+    ],
+    researchAreasLabel: 'Focus areas',
+    researchAreas: [
+      'Object Detection (YOLO / RT-DETR)',
+      'Unsupervised Domain Adaptation (UDA)',
+      'Open-Vocabulary Detectors & VLMs',
+      'Video Inference & MLOps',
+    ],
     yearLabel: 'Period',
     stackLabel: 'Stack',
     repoLabel: 'GitHub Repository',
-    backLabel: 'Back to the bench',
+    backLabel: 'Back to home',
     lastCommitLabel: 'last commit',
-    aboutHeading: 'Personal, Academic & Professional Dossier',
+    aboutHeading: 'Academic & Professional Curriculum',
     aboutSubtitle:
-      'Complete record compiled from the CNPq Lattes CV (ID 8185221944541336), the FAPESP Curricular Summary, and academic records at UFSCar and UFV.',
-    lattesSummaryHeading: 'Curricular Summary (Official Lattes Text)',
+      'Compiled from the [CNPq Lattes CV (ID 8185221944541336)](http://lattes.cnpq.br/8185221944541336), the FAPESP Curricular Summary, and academic records at [UFSCar](https://www.ppgcc.dc.ufscar.br/) and [UFV](https://www.crp.ufv.br/).',
+    lattesSummaryHeading: 'Curricular Summary (Lattes CV)',
     lattesSummaryQuote:
       'Machine Learning Engineer and Computer Vision researcher with experience in applied AI research and Deep Learning model development. Works with CNNs, object detection and image processing, with a track record of training and deploying models within MLOps pipelines and scalable systems.',
     aboutBody: [
-      'Born on 8 March 2004, I am a computer-vision engineer at Pix Force (having joined as an intern in January 2025 and transitioned to full-time engineer in January 2026) and an M.Sc. candidate in Computer Science at PPGCC/UFSCar advised by Prof. Dr. Jurandy Gomes de Almeida Junior.',
-      'Holding a B.Sc. in Information Systems from the Federal University of Viçosa (UFV — Rio Paranaíba Campus), I built my research foundation across digital signal processing, convolutional neural networks and distributed systems: serving as a FAPESP Undergraduate Research Fellow (grant 2024/08973-2) on the SFI2 project over the RNP FIBRE-NG testbed, an undergraduate CV researcher on coffee-bean grading, and a stipendiary teaching assistant for Discrete Mathematics.',
-      'A single 16 GB RTX 5060 Ti (Blackwell sm_120, cu128). No cluster. Everything I publish runs on one workstation GPU — which is why every system is engineered to fit its budget, measure its own uncertainty and justify every model call.',
+      'I joined Pix Force in January 2025 as a computer-vision intern and transitioned to a full-time computer-vision engineer role in January 2026, working on dataset curation, training, evaluation, and production deployment of video object-detection models. Concurrently, I am pursuing an M.Sc. in Computer Science at [UFSCar](https://www.ppgcc.dc.ufscar.br/) (RA 847647) under [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ).',
+      'During my B.Sc. in Information Systems at [UFV](https://www.crp.ufv.br/) (2022–2026), I held a [FAPESP](https://bv.fapesp.br/) undergraduate research fellowship (grant 2024/08973-2) within the SFI2 project, running experiments on the national RNP FIBRE-NG testbed under Prof. Dr. Flávio de Oliveira Silva. At UFV, I also conducted undergraduate research and wrote my B.Sc. thesis on coffee-bean grading using convolutional neural networks, Discrete Wavelet Transform, and CLAHE ([ComputerVision-CoffeeBean](/en/project/coffeebean)), and served as a stipendiary teaching assistant for Discrete Mathematics advised by Prof. Dr. Pedro Moises de Sousa.',
     ],
-    profileCardHeading: 'Biographical & Bibliographic Identification',
+    profileCardHeading: 'Identification & Academic Records',
     bioFields: [
       { label: 'Full name', value: 'Marcus Vinicius Diniz dos Reis' },
       {
@@ -746,16 +889,28 @@ export const UI: Record<Locale, UiStrings> = {
       { label: 'Birth date & Nationality', value: '08/03/2004 · Brazilian' },
       { label: 'Location', value: 'São Carlos, SP · Rio Paranaíba / Viçosa, MG — Brazil' },
       { label: 'Industry role', value: 'Pix Force Tecnologia Ltda. · Computer Vision Engineer (Full-time, 40h/wk)' },
-      { label: 'Academic affiliation', value: 'PPGCC / UFSCar · M.Sc. in Computer Science (RA 847647)' },
-      { label: 'CNPq Lattes ID', value: '8185221944541336' },
-      { label: 'ORCID iD', value: '0009-0002-1464-431X' },
+      {
+        label: 'Graduate program',
+        value: 'PPGCC / UFSCar · M.Sc. in Computer Science (RA 847647)',
+        href: 'https://www.ppgcc.dc.ufscar.br/',
+      },
+      {
+        label: 'CNPq Lattes ID',
+        value: '8185221944541336',
+        href: 'http://lattes.cnpq.br/8185221944541336',
+      },
+      {
+        label: 'ORCID iD',
+        value: '0009-0002-1464-431X',
+        href: 'https://orcid.org/0009-0002-1464-431X',
+      },
     ],
-    indicatorsHeading: 'Quantitative Production Indicators',
+    indicatorsHeading: 'Production Indicators',
     indicators: [
       {
         value: '3+ yrs',
-        label: 'Active in Computer Vision',
-        detail: 'Continuous research since 2023 and production engineering since Jan/2025.',
+        label: 'Computer Vision',
+        detail: 'Continuous research since 2023 and industry engineering since Jan/2025.',
       },
       {
         value: '1',
@@ -764,26 +919,26 @@ export const UI: Record<Locale, UiStrings> = {
       },
       {
         value: '3',
-        label: 'Full Conference Papers',
-        detail: 'Peer-reviewed proceedings papers in WSIS 2024 and XV WSIS 2025.',
+        label: 'Conference Papers',
+        detail: 'Full papers published in WSIS 2024 and XV WSIS 2025 (SBC).',
       },
       {
         value: '7',
-        label: 'Events, Workshops & Exhibitions',
-        detail: 'Presentations across WVC, WSIS, Digital Games Showcase and Professions Fair.',
+        label: 'Events & Exhibitions',
+        detail: 'Presentations at WVC, WSIS, Digital Games Showcase, and Professions Fair.',
       },
       {
         value: '5',
-        label: 'Awards, Fellowships & Honours',
-        detail: 'Best Paper, 1st Place CV Hackathon, FAPESP Fellowship, Best Poster & Marathon.',
+        label: 'Awards & Fellowships',
+        detail: 'Best Paper WSIS, 1st Place WVC Hackathon, FAPESP Fellowship, Best Poster, and Marathon.',
       },
       {
         value: 'h = 1',
-        label: 'Bibliometric Index',
-        detail: 'Google Scholar (ID 5jCt_wYAAAAJ · indexed citation in 2025).',
+        label: 'Google Scholar',
+        detail: 'Indexed citations on Google Scholar (ID 5jCt_wYAAAAJ).',
       },
     ],
-    experienceHeading: 'Professional Experience (Industry)',
+    experienceHeading: 'Professional Experience',
     experience: [
       {
         period: '01/2026 — present',
@@ -791,7 +946,7 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Pix Force Tecnologia Ltda.',
         regime: 'Full-time (CLT) · 40h / week',
         detail:
-          'Developing, deploying and optimising computer-vision models with an emphasis on object detection and real-world data analysis: dataset curation, model training, rigorous evaluation and integration of inference pipelines into production systems.',
+          'Developing, training, evaluating, and deploying computer-vision models for object detection and real-world video analysis in production systems.',
       },
       {
         period: '01/2025 — 12/2025',
@@ -799,26 +954,28 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Pix Force Tecnologia Ltda.',
         regime: 'Internship · 30h / week',
         detail:
-          'Implementation, experimentation and validation of deep-learning models and image/video processing routines for industrial inspection and monitoring solutions.',
+          'Implemented and validated image-processing pipelines and deep-learning models for industrial inspection and monitoring.',
       },
     ],
-    educationHeading: 'Academic Education & Degrees',
+    educationHeading: 'Academic Education',
     education: [
       {
         period: '2026 — 2028',
         role: 'M.Sc. in Computer Science',
         org: 'Federal University of São Carlos (UFSCar) · São Carlos, SP',
+        orgHref: 'https://www.ppgcc.dc.ufscar.br/',
         regime: 'Graduate Degree · RA 847647',
         detail:
-          'Advisor: Prof. Dr. Jurandy Gomes de Almeida Junior. Research on unsupervised domain adaptation (UDA) and open-vocabulary object detectors under compound shift.',
+          'Advisor: [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ). Research on unsupervised domain adaptation and [open-vocabulary object detectors](/en/project/uda-ovd).',
       },
       {
         period: '2022 — 2026',
         role: 'B.Sc. in Information Systems',
         org: 'Federal University of Viçosa (UFV) · Rio Paranaíba Campus, MG',
+        orgHref: 'https://www.crp.ufv.br/',
         regime: 'Undergraduate Degree',
         detail:
-          'B.Sc. Thesis: "Quality assessment of coffee beans using convolutional neural networks with ensemble techniques". Advisor: Prof. Dr. Pedro Moises de Sousa.',
+          'B.Sc. thesis on [coffee-bean quality grading using CNNs and ensembles](/en/project/coffeebean), advised by Prof. Dr. Pedro Moises de Sousa.',
       },
       {
         period: '2020 — 2021',
@@ -828,47 +985,50 @@ export const UI: Record<Locale, UiStrings> = {
         detail: 'Completed secondary education.',
       },
     ],
-    academicProjectsHeading: 'Formal Research & Teaching Projects (Lattes)',
+    academicProjectsHeading: 'Research & Teaching Projects (Lattes)',
     academicProjects: [
       {
         period: '2024 — 2025',
-        kind: 'Research Project · FAPESP Fellowship',
+        kind: 'Research · FAPESP Fellowship',
         code: 'FAPESP grant 2024/08973-2 · SFI2 Project',
         title:
           'Building and validating a flexible Reinforcement Learning agent for Network Slicing Architectures',
+        href: 'https://doi.org/10.1007/978-3-031-87772-8_8',
         org: 'UFV & RNP FIBRE-NG National Testbed',
         advisor: 'Coordinator: Prof. Dr. Flávio de Oliveira Silva · Member: Rodrigo Moreira',
         detail:
-          'Experimental design and validation on the RNP FIBRE-NG testbed of machine-learning and cross-domain monitoring approaches for SLA assurance in network slices over containerised microservice architectures. Resulted in the 1st-author Springer Nature chapter (2025).',
+          'Experiments on the RNP FIBRE-NG national testbed with machine-learning and cross-domain monitoring for SLA assurance in containerised network slices. Produced the [1st-author Springer Nature chapter (2025)](https://doi.org/10.1007/978-3-031-87772-8_8).',
       },
       {
         period: '2024 — 2025',
-        kind: 'Research Project · Undergraduate Research (IC)',
+        kind: 'Research · Undergraduate Research (IC)',
         code: 'Computer Vision IC · UFV',
         title:
           'Coffee-bean quality analysis using convolutional neural networks with wavelet techniques',
+        href: 'https://doi.org/10.5753/wsis.2024.33669',
         org: 'Federal University of Viçosa (UFV)',
         advisor: 'Coordinator: Prof. Dr. Pedro Moises de Sousa',
         detail:
-          'Public dataset curation, morphological preprocessing, local contrast enhancement (CLAHE), Discrete Wavelet Transform decomposition and training/validation of CNN architectures and ensembles.',
+          'Public dataset curation, CLAHE and Discrete Wavelet Transform preprocessing, and comparison of CNN architectures and ensembles in PyTorch ([CoffeeBean repository](/en/project/coffeebean) and [WSIS 2024 paper](https://doi.org/10.5753/wsis.2024.33669)).',
       },
       {
         period: '2024',
-        kind: 'Teaching Project · Academic Teaching Assistantship',
+        kind: 'Teaching · Academic Teaching Assistantship',
         code: 'Competitive Stipendiary Fellowship · UFV',
         title: 'Stipendiary Teaching Assistantship in Discrete Mathematics',
         org: 'Federal University of Viçosa (UFV)',
         advisor: 'Coordinator: Prof. Dr. Pedro Moises de Sousa',
         detail:
-          'Assisted instruction in formal logic, set theory, relations, mathematical induction and combinatorics, holding office hours and authoring/grading problem sets.',
+          'Student office hours and teaching support in propositional logic, set theory, relations, mathematical induction, and combinatorics.',
       },
     ],
-    awardsHeading: 'Awards, Fellowships & Academic Honours',
+    awardsHeading: 'Awards, Fellowships & Honours',
     awards: [
       {
         year: '2025',
         title: 'Best Paper Award',
-        venue: 'XV Information Systems Workshop (WSIS), UFV',
+        venue: 'XV Information Systems Workshop (WSIS), UFV / SBC',
+        href: 'https://doi.org/10.5753/wsis.2025.15733',
       },
       {
         year: '2024',
@@ -877,8 +1037,9 @@ export const UI: Record<Locale, UiStrings> = {
       },
       {
         year: '2024',
-        title: 'FAPESP Undergraduate Research Fellowship (Academic Merit)',
+        title: 'FAPESP Undergraduate Research Fellowship',
         venue: 'São Paulo Research Foundation (grant 2024/08973-2)',
+        href: 'https://doi.org/10.1007/978-3-031-87772-8_8',
       },
       {
         year: '2023',
@@ -895,19 +1056,21 @@ export const UI: Record<Locale, UiStrings> = {
     events: [
       {
         year: '2025',
-        kind: 'Workshop · Award-Winning Paper Presentation',
+        kind: 'Workshop · Award-Winning Paper',
         event: 'XV Information Systems Workshop (WSIS 2025)',
         work: 'Unsupervised Specialization of Visual Subclasses Using K-Means in YOLO-Based Detection Pipelines',
+        href: 'https://doi.org/10.5753/wsis.2025.15733',
       },
       {
         year: '2025',
         kind: 'Workshop · Full Paper Presentation',
         event: 'XV Information Systems Workshop (WSIS 2025)',
         work: 'Automated Correction of Multiple Choice Tests Using Computer Vision',
+        href: 'https://doi.org/10.5753/wsis.2025.15732',
       },
       {
         year: '2024',
-        kind: 'Workshop & Hackathon · 1st Place Overall',
+        kind: 'Workshop & Hackathon · 1st Place',
         event: 'Computer Vision Workshop (WVC 2024)',
         work: 'Prototype Solution for Identifying Player Team Affiliation in Sports Videos',
       },
@@ -915,17 +1078,18 @@ export const UI: Record<Locale, UiStrings> = {
         year: '2024',
         kind: 'Technology Exhibition',
         event: 'Digital Games Showcase (Mostra de Jogos Digitais — UFV)',
-        work: 'Alfabeto Mágico — Interactive educational digital game',
+        work: 'Alfabeto Mágico — Educational digital game',
       },
       {
         year: '2024',
         kind: 'Workshop · Oral Presentation (1st Author)',
         event: 'Information Systems Workshop (WSIS 2024)',
         work: 'Quality Assessment of Coffee Beans Using Convolutional Neural Networks with Wavelet and CLAHE Techniques',
+        href: 'https://doi.org/10.5753/wsis.2024.33669',
       },
       {
         year: '2023',
-        kind: 'Workshop · Award-Winning Poster Presentation',
+        kind: 'Workshop · Award-Winning Poster',
         event: 'Information Systems Workshop (WSIS 2023)',
         work: 'AI Development: Coffee-bean quality analysis using convolutional neural networks with wavelet techniques',
       },
@@ -936,7 +1100,7 @@ export const UI: Record<Locale, UiStrings> = {
         work: 'Introduction to ChatBots — Interactive demonstration of conversational systems',
       },
     ],
-    skillsHeading: 'Technical Competency Matrix',
+    skillsHeading: 'Technical Competencies',
     skillGroups: [
       {
         category: 'Computer Vision & Signal Processing',
@@ -954,7 +1118,7 @@ export const UI: Record<Locale, UiStrings> = {
         ],
       },
       {
-        category: 'Deep Learning & Multimodal Models (VLMs)',
+        category: 'Deep Learning & Vision-Language Models',
         items: [
           'PyTorch',
           'TensorFlow / Keras',
@@ -998,79 +1162,114 @@ export const UI: Record<Locale, UiStrings> = {
       },
       {
         language: 'English',
-        level: 'Technical & Scientific Proficiency',
-        detail: 'Listens well · Reads well · Writes well · Intermediate spoken (scientific paper authorship and code documentation)',
+        level: 'Scientific Reading & Writing',
+        detail: 'Listens well · Reads well · Writes well · Intermediate spoken',
       },
     ],
-    contactHeading: 'Academic Profiles, Identifiers & Contact',
+    contactHeading: 'Academic Profiles & Contact',
     contact: [
-      { label: 'GitHub', value: '@marcus-vreis', href: 'https://github.com/marcus-vreis' },
-      { label: 'LinkedIn', value: 'in/marcus-vinicius-diniz', href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/' },
-      { label: 'Google Scholar', value: '5jCt_wYAAAAJ (h = 1)', href: 'https://scholar.google.com/citations?user=5jCt_wYAAAAJ' },
-      { label: 'ORCID', value: '0009-0002-1464-431X', href: 'https://orcid.org/0009-0002-1464-431X' },
-      { label: 'Lattes CV', value: 'CNPq 8185221944541336', href: 'http://lattes.cnpq.br/8185221944541336' },
-      { label: 'Email', value: 'marcusvinicius0083@gmail.com', href: 'mailto:marcusvinicius0083@gmail.com' },
+      { icon: 'github', label: 'GitHub', value: '@marcus-vreis', href: 'https://github.com/marcus-vreis' },
+      {
+        icon: 'scholar',
+        label: 'Google Scholar',
+        value: '5jCt_wYAAAAJ (h = 1)',
+        href: 'https://scholar.google.com/citations?user=5jCt_wYAAAAJ',
+      },
+      {
+        icon: 'linkedin',
+        label: 'LinkedIn',
+        value: 'in/marcus-vinicius-diniz',
+        href: 'https://www.linkedin.com/in/marcus-vinicius-diniz/',
+      },
+      {
+        icon: 'orcid',
+        label: 'ORCID',
+        value: '0009-0002-1464-431X',
+        href: 'https://orcid.org/0009-0002-1464-431X',
+      },
+      {
+        icon: 'lattes',
+        label: 'Lattes CV',
+        value: 'CNPq 8185221944541336',
+        href: 'http://lattes.cnpq.br/8185221944541336',
+      },
+      {
+        icon: 'email',
+        label: 'Email',
+        value: 'marcusvinicius0083@gmail.com',
+        href: 'mailto:marcusvinicius0083@gmail.com',
+      },
     ],
     name: 'Marcus Vinicius',
     fullName: 'Marcus Vinicius Diniz dos Reis',
     citationShort: 'REIS, M. V. D.',
+    heroRolePrimary: 'Computer Vision Engineer · Pix Force',
+    heroRoleSecondary: 'M.Sc. Student in Computer Science · UFSCar',
+    heroDegreeLine: 'B.Sc. in Information Systems · UFV',
     birthAndNationality: '08/03/2004 · Brazil',
-    locationLabel: 'São Carlos, SP · Viçosa / Rio Paranaíba, MG',
-    portraitAlt: 'Optical calibration and telemetry schematic console',
+    locationLabel: 'São Carlos, SP · MG, Brazil',
+    portraitAlt: 'Repository telemetry and architectural notes panel',
     authorPhotoAlt: 'Portrait of Marcus Vinicius Diniz dos Reis',
-    projectsHeading: 'Public Instruments & Projects',
+    projectsHeading: 'Public Projects & Repositories',
     projectsSubtitle:
-      'Eight public open-source repositories on GitHub. Operational mood and commit counts come from the daily snapshot committed to the repo — the build never touches the network.',
+      'Eight open-source repositories on [GitHub (@marcus-vreis)](https://github.com/marcus-vreis), paired with pipeline schematics and automated activity metrics.',
     researchHeading: 'Master’s Research · UFSCar',
     researchSubtitle:
-      'Empirical study and teacher–student self-training under domain shift (COCO-C, Foggy Cityscapes and BDD100K).',
+      'Empirical study on pseudo-label filtering versus completion under domain shift (COCO-C, Foggy Cityscapes, and BDD100K).',
     publicationsHeading: 'Scientific Publications',
     publicationsSubtitle:
-      'Peer-reviewed papers in an international book series (Springer Nature) and conference proceedings.',
+      'International book chapter (Springer Nature) and peer-reviewed conference papers (SBC / WSIS). Click any title or DOI to open the publication.',
+    doiLabel: 'DOI',
     trajectoryHeading: 'Professional & Academic Timeline',
-    hardwareHeading: 'Bench Constraint',
-    hardwareSpec: '1× NVIDIA RTX 5060 Ti · 16 GB VRAM · sm_120 (cu128)',
-    hardwareDetail:
-      'Fixed compute budget: every experiment, training loop or local agent is designed to run end-to-end on a single workstation GPU.',
-    navProjects: 'Instruments',
+    navProjects: 'Projects',
     navResearch: 'Research',
     navPublications: 'Publications',
-    navAbout: 'Dossier',
-    heroBadge: 'ENGINEERING NOTEBOOK // COMPUTER VISION',
+    navAbout: 'CV',
+    heroBadge: 'MARCUS VINICIUS DINIZ DOS REIS // PORTFOLIO & RESEARCH',
     heroAffiliation: 'UFSCar M.Sc. (RA 847647) · Pix Force · UFV B.Sc.',
-    telemetryHeading: 'Repository Telemetry',
+    telemetryHeading: 'Repository Activity',
     telemetrySnapshotLabel: 'UTC Snapshot',
-    telemetryCommitsLabel: 'Commits / 90 days',
-    telemetryActiveLabel: 'Active projects',
+    telemetryCommitsLabel: 'Commits (90d)',
+    telemetryActiveLabel: 'Active repos',
     telemetryReleaseLabel: 'Latest release',
-    pillarsHeading: 'Three Engineering Seams',
+    pillarsHeading: 'Architectural Notes',
     pillars: [
       {
         id: 'seam',
-        code: 'SEAM 01 // GEOMETRY vs. SEMANTICS',
-        title: 'Pixels only go as far as geometry requires',
+        code: 'NOTE 01 // GEOMETRY × SEMANTICS',
+        title: 'Separating metric coordinates from model calls',
         formula: 'I(u,v) → H⁻¹ → (x, y, t) ∈ ℝ² × ℝ',
         summary:
-          'In custody-watch, everything right of the ground plane consumes only metres and seconds; in VampireAI (ADR-022), pure NumPy functions solve cards and minimap BFS in 3.3 ms so the VLM decides only semantics (1–2× per turn).',
-        projects: 'custody-watch · VampireAI · ImageLab',
+          'In [custody-watch](/en/project/custody-watch), the state machine consumes only ground-plane metres and seconds. In [VampireAI](/en/project/vampireai) (ADR-022), NumPy functions extract card slots and minimap BFS paths in 3.3 ms before calling the VLM (1–2 times per turn).',
+        projectLinks: [
+          { label: 'custody-watch', href: '/en/project/custody-watch' },
+          { label: 'VampireAI', href: '/en/project/vampireai' },
+          { label: 'ImageLab', href: '/en/project/imagelab' },
+        ],
       },
       {
         id: 'rigor',
-        code: 'SEAM 02 // PROVENANCE & REFUSAL',
-        title: 'Every reported number must be defensible',
+        code: 'NOTE 02 // REPRODUCIBILITY & EVALUATION',
+        title: 'Multi-seed replicates and protocol verification',
         formula: 'μ ± CI₉₅(bootstrap, K=5 seeds) · run.json',
         summary:
-          'In VisionForge, every run records environment and hyperparameters to run.json and compares models across multi-seed replicates. In custody-watch, evaluate.py refuses to compute P_miss at 25 s when CAVIAR’s longest abandonment lasts 13.3 s.',
-        projects: 'VisionForge · custody-watch · CoffeeBean',
+          'In [VisionForge](/en/project/visionforge), each training run writes environment versions and hyperparameters to `run.json` and compares models across multi-seed replicates. In [custody-watch](/en/project/custody-watch), `evaluate.py` aborts `P_miss` at 25 s on CAVIAR because the longest annotated abandonment lasts 13.3 s.',
+        projectLinks: [
+          { label: 'VisionForge', href: '/en/project/visionforge' },
+          { label: 'custody-watch', href: '/en/project/custody-watch' },
+          { label: 'CoffeeBean', href: '/en/project/coffeebean' },
+        ],
       },
       {
         id: 'domain',
-        code: 'SEAM 03 // DOMAIN SHIFT',
-        title: 'Completion beats filtering when recall collapses',
+        code: 'NOTE 03 // DOMAIN SHIFT',
+        title: 'Pseudo-label completion under recall collapse',
         formula: 'Ŷ = Y_teacher(τ) ∪ Y_GDINO(c ∉ Y_teacher) → +0.077 Recall',
         summary:
-          'Under fog and night shift, crop-level VLM filters (CLIP/SigLIP) degrade AUPRC across 100% of conditions because the teacher suffers recall collapse. Completing pseudo-labels with Grounding DINO recovers missed objects.',
-        projects: 'UFSCar M.Sc. (COCO-C · Foggy · BDD100K)',
+          'In the [UFSCar M.Sc. study](/en/project/uda-ovd), crop-level filters (CLIP and SigLIP) reduced AUPRC across 100% of evaluated conditions because the teacher detector suffers recall collapse. Merging Grounding DINO detections recovers +0.077 recall and +0.023 F1.',
+        projectLinks: [
+          { label: 'UFSCar M.Sc. (UDA + OVD)', href: '/en/project/uda-ovd' },
+        ],
       },
     ],
     filterAll: 'All',
@@ -1080,13 +1279,13 @@ export const UI: Record<Locale, UiStrings> = {
     starsSuffix: 'stars',
     inspectLabel: 'Spec sheet',
     schematicLabel: 'Architectural schematic',
-    invariantLabel: 'Architectural invariant',
+    invariantLabel: 'Design decision',
     statusLabel: 'Operational state',
     commits90dLabel: 'Activity (90d)',
     releaseLabel: 'Latest release',
     figuresLabel: 'Interface captures',
-    prevProjectLabel: 'Previous instrument',
-    nextProjectLabel: 'Next instrument',
+    prevProjectLabel: 'Previous project',
+    nextProjectLabel: 'Next project',
     moods: {
       formado: 'graduated',
       'a-todo-vapor': 'full steam',
@@ -1101,15 +1300,15 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Config(Pydantic) → {Seed s₁..s₅} → Bootstrap CI₉₅ + run.json',
         stages: ['Pydantic v2 Config', '5× Seeds · GPU cu128', '95% CI + run.json'],
         invariant:
-          'Fail before touching GPU time (ADR-002) and record full provenance in run.json (ADR-013) with multi-seed confidence intervals.',
+          'Configuration validation before GPU allocation (ADR-002) and full provenance logging in run.json (ADR-013) with multi-seed confidence intervals.',
         metric: '5 task families · 121 ADRs · v0.17.0',
       },
       custodia: {
-        code: 'FIG. 02 // PIXEL → METRE & SECOND SEAM',
+        code: 'FIG. 02 // PIXEL → METRE & SECOND BOUNDARY',
         formula: 'YOLO26(px) → GroundPlane(H⁻¹) ║ (x,y,t) → CustodyFSM → Queue',
-        stages: ['YOLO26 + Homography', 'Seam (x, y, t) m·s', 'CustodyFSM + Queue'],
+        stages: ['YOLO26 + Homography', 'Plane (x, y, t) m·s', 'CustodyFSM + Queue'],
         invariant:
-          'Zero facial recognition (blocked by pre-commit). Ownership is a spatial deposit in BagRegistry; evaluate.py refuses unexpressible protocols.',
+          'No facial recognition (blocked in pre-commit). Ownership is a spatial deposit in BagRegistry; evaluate.py validates the benchmark protocol.',
         metric: '397 tests · 0 CAVIAR false alarms · 600k→queue',
       },
       fliperama: {
@@ -1117,7 +1316,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Frame(78ms) → [NumPy CV 3.3ms: Cards/BFS/Glyphs] + [VLM 7B: 1–2×/turn]',
         stages: ['Pure CV (3.3 ms)', 'Qwen2.5-VL 7B (Ollama)', 'Virtual DS4 (vgamepad)'],
         invariant:
-          'ADR-022: never ask the VLM for counts, coordinates or paths. Runtime-learned mana glyphs (digits.py) and virtual gamepad traversal.',
+          'ADR-022: NumPy vision extracts counts, coordinates, and minimap paths; the VLM receives only semantic crops and selects the action.',
         metric: '3.3 ms slots · 1.6 ms HUD · 1–2 VLM calls/turn',
       },
       estacao: {
@@ -1125,15 +1324,15 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Collectors [N₁..Nₖ] → RabbitMQ(Batch + Token) → Idempotent Core → WS/REST',
         stages: ['Batch Collectors', 'RabbitMQ + Token', 'Core → WebSocket'],
         invariant:
-          'Decoupled via two RabbitMQ queues and per-batch idempotency tokens to absorb redeliveries without duplicating sensor readings.',
-        metric: 'Dual RabbitMQ queues · Docker Compose · Live WS',
+          'Collection and aggregation decoupled through two RabbitMQ queues, with batch idempotency tokens to discard duplicate deliveries.',
+        metric: 'Dual RabbitMQ queues · Docker Compose · WebSocket',
       },
       scanner: {
-        code: 'FIG. 05 // SPATIAL & FREQUENCY SIGNAL CHAIN',
+        code: 'FIG. 05 // SPATIAL, MORPHOLOGICAL & FREQUENCY CHAIN',
         formula: 'I(x,y) → [Sobel / Morphology / Otsu τ*] ∥ [ℱ{I}(u,v) FFT]',
         stages: ['Spatial Domain', 'FFT Spectrum ℱ(u,v)', 'Otsu τ* & Morphology'],
         invariant:
-          'Strict separation between UI event handling (main.py) and the 6 pure mathematical digital image processing modules.',
+          'GUI event dispatch (main.py) isolated from the 6 mathematical image-processing modules.',
         metric: '6 pure modules · Spatial + FFT + Morphology',
       },
       cafeteira: {
@@ -1141,7 +1340,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'RGB → CLAHE → DWT {LL, LH, HL, HH} → CNN Ensemble → Grade',
         stages: ['CLAHE Contrast', 'Wavelet Subbands', 'CNN Ensemble'],
         invariant:
-          'Fuses local contrast enhancement (CLAHE) and multiresolution texture subbands (Wavelet) prior to multi-CNN ensemble voting.',
+          'Combines adaptive local contrast (CLAHE) and Wavelet subbands prior to voting across convolutional architectures.',
         metric: '1st-author paper WSIS 2024 · B.Sc. Thesis',
       },
       plotter: {
@@ -1149,7 +1348,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Silhouette → Descriptors(scikit-image) → Projection → k-NN (k=3) vs. SVM',
         stages: ['MPEG7 Silhouette', 'Geometric Descriptors', 'k-NN / SVM Boundary'],
         invariant:
-          'Explicit contour and region descriptor extraction to contrast local neighbourhood decision (k-NN) against maximum-margin (SVM).',
+          'Extracts morphological contour and region descriptors to compare neighbourhood boundaries (k-NN) against maximum-margin (SVM).',
         metric: 'MPEG7 benchmark · Accuracy, Precision, Recall, F1',
       },
       esteira: {
@@ -1157,7 +1356,7 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Input {Asc, Desc, Rand} × N ∈ [10¹, 10⁶] → Pivot → T(N)',
         stages: ['N = 10¹..10⁶ (3 regimes)', '4 QuickSort Pivots + Heap', 'Empirical T(N) Curve'],
         invariant:
-          'Direct measurement of O(N²) collapse on ordered inputs and O(N log N) preservation via median-of-three and randomised pivots.',
+          'Empirical measurement of O(N²) degradation on sorted arrays with fixed pivots and O(N log N) stability with median-of-three and random pivots.',
         metric: '7 C++ algorithms · N up to 1,000,000 · 3 distributions',
       },
       nevoeiro: {
@@ -1165,45 +1364,53 @@ export const UI: Record<Locale, UiStrings> = {
         formula: 'Target(β=0.02) → Teacher(Recall Collapse) ∪ GDINO(Completion) → +0.023 F1',
         stages: ['Shift (COCO-C / Foggy)', 'Ceiling: Filter × Complete', 'Teacher ∪ Grounding DINO'],
         invariant:
-          'Findings A1–A3: crop filtering with CLIP/SigLIP degrades AUPRC in 100% of cases; completing missed objects with Grounding DINO recovers recall.',
-        metric: '+0.077 Recall · +0.023 F1 · 1× RTX 5060 Ti',
+          'Findings A1–A3: crop filters (CLIP and SigLIP) reduce AUPRC in 100% of cases; completing pseudo-labels with Grounding DINO recovers teacher recall.',
+        metric: '+0.077 Recall · +0.023 F1 · COCO-C / Foggy / BDD100K',
       },
     },
     publications: [
       {
         year: '2025',
-        venue: 'Springer Nature · Lecture Notes on Data Engineering and Communications Technologies (1st ed., pp. 89–100)',
+        venue: 'Springer Nature · Lecture Notes in Networks and Systems / Data Engineering and Communications Technologies (pp. 89–100)',
         badge: 'International Book Chapter · 1st Author',
         title:
           'Estimating Application Performance in Container-Based Environments: A Cross-Domain Monitoring Approach',
         authors: 'dos REIS, Marcus V. Diniz; MOREIRA, Rodrigo; RODRIGUES MOREIRA, Larissa F.; de OLIVEIRA SILVA, Flávio',
-        note: 'Produced during the FAPESP undergraduate fellowship (grant 2024/08973-2) within the SFI2 project, validated on the RNP FIBRE-NG testbed under controlled compute budgets.',
+        doi: '10.1007/978-3-031-87772-8_8',
+        href: 'https://doi.org/10.1007/978-3-031-87772-8_8',
+        note: 'Produced during the [FAPESP undergraduate fellowship (grant 2024/08973-2)](https://bv.fapesp.br/) in the SFI2 project, validated on the national RNP FIBRE-NG testbed.',
       },
       {
         year: '2025',
-        venue: 'Proceedings of the XV Information Systems Workshop (WSIS 2025, Rio Paranaíba, pp. 11–19)',
+        venue: 'Proceedings of the XV Information Systems Workshop (WSIS 2025, SBC, pp. 11–19)',
         badge: 'Best Paper Award',
         title:
           'Unsupervised Specialization of Visual Subclasses Using K-Means in YOLO-Based Detection Pipelines',
         authors: 'MOREIRA, Pedro Henrique Campos; FERREIRA, Bianca Panacho; REIS, Marcus Vinicius Diniz dos',
-        note: 'Unsupervised visual subclass specialisation inside YOLO detection pipelines without requiring extra bounding-box labels.',
+        doi: '10.5753/wsis.2025.15733',
+        href: 'https://doi.org/10.5753/wsis.2025.15733',
+        note: 'Unsupervised visual subclass discovery via K-Means clustering over object crops extracted by YOLO detection pipelines.',
       },
       {
         year: '2025',
-        venue: 'Proceedings of the XV Information Systems Workshop (WSIS 2025, Rio Paranaíba, pp. 1–10)',
+        venue: 'Proceedings of the XV Information Systems Workshop (WSIS 2025, SBC, pp. 1–10)',
         badge: 'Full Paper',
         title: 'Automated Correction of Multiple Choice Tests Using Computer Vision',
         authors: 'MOREIRA, Pedro Henrique Campos; FERREIRA, Bianca Panacho; REIS, Marcus Vinicius Diniz dos',
-        note: 'Computer-vision pipeline for optical answer-sheet grading validated under real-world, non-laboratory capture conditions.',
+        doi: '10.5753/wsis.2025.15732',
+        href: 'https://doi.org/10.5753/wsis.2025.15732',
+        note: 'Computer-vision pipeline for geometric alignment and optical grading of answer sheets captured under mobile camera conditions.',
       },
       {
         year: '2024',
-        venue: 'Proceedings of the Information Systems Workshop (WSIS 2024, pp. 33–38)',
+        venue: 'Proceedings of the XIV Information Systems Workshop (WSIS 2024, SBC, pp. 33–38)',
         badge: 'Full Paper · 1st Author',
         title:
           'Quality Assessment of Coffee Beans Using Convolutional Neural Networks with Wavelet and CLAHE Techniques',
         authors: 'REIS, Marcus Vinicius Diniz dos; SOUSA, Pedro Moises de',
-        note: 'Origin of the B.Sc. thesis experimental line: pairs CLAHE contrast enhancement and Wavelet decomposition with CNN architectures (cited on Google Scholar).',
+        doi: '10.5753/wsis.2024.33669',
+        href: 'https://doi.org/10.5753/wsis.2024.33669',
+        note: 'Evaluates the impact of CLAHE contrast enhancement and Discrete Wavelet Transform on coffee-bean grading with CNNs ([code in CoffeeBean repo](/en/project/coffeebean)).',
       },
     ],
     trajectory: [
@@ -1213,12 +1420,13 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'Pix Force Tecnologia Ltda.',
         regime: 'Full-time (CLT) · 40h/week',
         detail:
-          'Developing, deploying and optimising object-detection models and production inference pipelines over real-world video streams and industrial data.',
+          'Developing, training, and deploying object-detection models and inference pipelines over production video streams.',
       },
       {
         period: '2026 — 2028',
         role: 'M.Sc. in Computer Science',
         org: 'Federal University of São Carlos (UFSCar)',
+        orgHref: 'https://www.ppgcc.dc.ufscar.br/',
         regime: 'PPGCC · RA 847647',
         detail:
           'Advisor: Prof. Dr. Jurandy Gomes de Almeida Junior. Research on domain adaptation and open-vocabulary object detectors.',
@@ -1237,15 +1445,16 @@ export const UI: Record<Locale, UiStrings> = {
         org: 'SFI2 Project · RNP FIBRE-NG Testbed',
         regime: 'FAPESP Funded Research',
         detail:
-          'Advisor: Prof. Dr. Flávio de Oliveira Silva. Reinforcement-learning agents for network slicing and cross-domain container monitoring.',
+          'Advisor: Prof. Dr. Flávio de Oliveira Silva. Reinforcement learning and cross-domain monitoring in containerised environments.',
       },
       {
         period: '2022 — 2026',
         role: 'B.Sc. in Information Systems',
         org: 'Federal University of Viçosa (UFV)',
+        orgHref: 'https://www.crp.ufv.br/',
         regime: 'Undergraduate · Rio Paranaíba Campus',
         detail:
-          'Thesis advised by Prof. Dr. Pedro Moises de Sousa on coffee-bean quality assessment using CNNs and ensembles. Stipendiary teaching assistant for Discrete Mathematics (2024).',
+          'Thesis advised by Prof. Dr. Pedro Moises de Sousa on coffee-bean grading using CNNs and ensembles. Stipendiary teaching assistant for Discrete Mathematics (2024).',
       },
     ],
   },

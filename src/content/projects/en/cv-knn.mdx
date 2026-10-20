@@ -1,7 +1,7 @@
 ---
 title: ComputerVision-KNN
 persona: The Shapes
-tagline: Geometric descriptor extraction and MPEG7 shape classification with k-NN and SVM.
+tagline: Geometric shape descriptor extraction and MPEG7 silhouette classification with k-NN and SVM.
 accent: '#FF7A29'
 accentLight: '#BD4700'
 order: 7
@@ -12,15 +12,11 @@ character: plotter
 year: '2024'
 stack: ['scikit-image', 'scikit-learn', 'k-NN', 'SVM', 'MPEG7']
 repo: 'https://github.com/marcus-vreis/ComputerVision-KNN'
-links: []
+links:
+  - label: 'GitHub Repository'
+    href: 'https://github.com/marcus-vreis/ComputerVision-KNN'
 ---
 
-A complete classical visual pattern-recognition pipeline on a modified
-**MPEG7** silhouette benchmark. The study walks through every pre-deep-learning
-stage: filtering and morphological segmentation with `scikit-image`, shape and
-region descriptor extraction, feature selection and feature-space projection.
+Classical shape-recognition pipeline evaluated on a subset of the MPEG7 silhouette benchmark. The code in [`ComputerVision-KNN`](https://github.com/marcus-vreis/ComputerVision-KNN) performs morphological preprocessing and segmentation with `scikit-image`, extracts contour and region descriptors, and applies feature selection and projection prior to classification.
 
-At the decision stage, it contrasts non-parametric neighbourhood boundaries
-(**k-Nearest Neighbors**) against maximum-margin classifiers (**Support Vector
-Machines**), measuring sensitivity to $k$, kernel hyperparameters, and
-per-class accuracy, precision, recall and F1-score.
+The evaluation compares local neighbourhood decision boundaries (*k-Nearest Neighbors*) against maximum-margin classifiers (*Support Vector Machines* in `scikit-learn`), measuring the sensitivity of accuracy, precision, recall, and per-class F1-score to the choice of $k$ and kernel parameters.

@@ -12,16 +12,11 @@ character: plotter
 year: '2024'
 stack: ['scikit-image', 'scikit-learn', 'k-NN', 'SVM', 'MPEG7']
 repo: 'https://github.com/marcus-vreis/ComputerVision-KNN'
-links: []
+links:
+  - label: 'Repositório GitHub'
+    href: 'https://github.com/marcus-vreis/ComputerVision-KNN'
 ---
 
-Pipeline clássico completo de reconhecimento de padrões visuais sobre uma versão
-modificada do benchmark de silhuetas **MPEG7**. O trabalho percorre cada estágio
-antes do aprendizado profundo: filtragem e segmentação morfológica com
-`scikit-image`, extração de descritores de forma e região, seleção de atributos
-e projeção do espaço de características.
+Pipeline clássico de reconhecimento de formas sobre um recorte do benchmark de silhuetas MPEG7. O código em [`ComputerVision-KNN`](https://github.com/marcus-vreis/ComputerVision-KNN) executa pré-processamento e segmentação morfológica com `scikit-image`, extrai descritores geométricos de contorno e região e aplica seleção e projeção de atributos antes da etapa de classificação.
 
-Na etapa de decisão, compara fronteiras não-paramétricas (**k-Nearest
-Neighbors**) contra separadores de margem máxima (**Support Vector Machines**),
-avaliando sensibilidade à escolha de $k$, hiperparâmetros de kernel e balanço
-entre acurácia, precisão, revocação e F1-score por classe morfológica.
+A avaliação contrasta fronteiras locais por vizinhança (*k-Nearest Neighbors*) e separadores de margem máxima (*Support Vector Machines* em `scikit-learn`). Os experimentos medem o efeito da escolha de $k$ e do kernel sobre acurácia, precisão, revocação e F1-score por classe morfológica.

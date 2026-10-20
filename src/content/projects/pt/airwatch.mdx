@@ -1,7 +1,7 @@
 ---
 title: AirWatch
 persona: A Rede
-tagline: Telemetria distribuída de qualidade do ar com filas RabbitMQ, agregação idempotente e streaming em tempo real.
+tagline: Telemetria distribuída de qualidade do ar com dupla fila RabbitMQ, agregação idempotente e streaming via WebSocket.
 accent: '#4EC9E0'
 accentLight: '#187687'
 order: 4
@@ -12,22 +12,13 @@ character: estacao
 year: '2026'
 stack: ['TypeScript', 'RabbitMQ', 'Docker Compose', 'WebSocket', 'REST']
 repo: 'https://github.com/marcus-vreis/AirWatch'
-links: []
+links:
+  - label: 'Repositório GitHub'
+    href: 'https://github.com/marcus-vreis/AirWatch'
 ---
 
-Sistema distribuído para coleta, agregação e visualização de dados de qualidade
-do ar provenientes de múltiplos nós coletores, desenvolvido para a disciplina de
-Sistemas Distribuídos (SIN 142, UFV — Prof. Dr. Pedro Damaso).
+O [AirWatch](https://github.com/marcus-vreis/AirWatch) coleta, agrega e transmite leituras de qualidade do ar a partir de múltiplos nós coletores. O sistema foi construído em TypeScript para a disciplina de Sistemas Distribuídos (SIN 142) na [Universidade Federal de Viçosa (UFV)](https://www.crp.ufv.br/), ministrada pelo Prof. Dr. Pedro Damaso.
 
-A arquitetura desacopla a coleta e o processamento por meio de **duas filas do
-RabbitMQ**: o nó central despacha requisições de leitura na primeira fila; nós
-consumidores consultam a fonte externa, agrupam as leituras em lote (*batch*) e
-publicam o pacote na segunda fila acompanhado de um token único de idempotência.
-O núcleo central absorve os lotes com tolerância a duplicatas e persiste o
-estado consolidado.
+Duas filas do RabbitMQ desacoplam a coleta do processamento central. O coordenador publica ordens de leitura na primeira fila; os coletores consultam a fonte externa, agrupam as medições em lote (*batch*) e devolvem o pacote na segunda fila acompanhado de um token de idempotência. O serviço central descarta reentregas duplicadas e atualiza o estado consolidado.
 
-Na ponta de visualização, os agregados processados são transmitidos
-continuamente por **WebSocket** e expostos sob demanda via **API REST**,
-alimentando um painel organizado por grupos de sensores. Todo o cluster
-(coletores, broker RabbitMQ, core e frontend) sobe de forma reproduzível via
-`docker-compose`.
+Os agregados são transmitidos em tempo real por WebSocket e disponibilizados para consulta histórica via API REST. O ambiente completo (coletores, broker RabbitMQ, núcleo de agregação e painel web) é provisionado via `docker-compose`.

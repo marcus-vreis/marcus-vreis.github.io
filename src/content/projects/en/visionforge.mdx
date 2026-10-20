@@ -1,7 +1,7 @@
 ---
 title: VisionForge
 persona: The Instrument
-tagline: Local-first platform to train, compare and defend computer-vision models on your own GPU.
+tagline: Local-first platform for multi-seed training, evaluation, and provenance tracking in computer vision.
 accent: '#6EE7A8'
 accentLight: '#157C46'
 order: 1
@@ -18,24 +18,11 @@ links:
   - label: 'DOI (Zenodo)'
     href: 'https://doi.org/10.5281/zenodo.23425765'
 cover: ../../../assets/projects/visionforge.png
-coverAlt: 'VisionForge’s classification panel: experiment name field, strategy selector (simple training, k-fold, transfer learning, grid or random search), resnet50 model architecture, epoch, learning-rate and batch-size fields, and a “Train” button. Dark UI with red accents.'
+coverAlt: 'VisionForge classification panel showing experiment name, strategy selector, resnet50 architecture, hyperparameter inputs, and training trigger.'
 detailImage: ../../../assets/projects/visionforge-replicates.png
-detailImageAlt: 'The same platform on the regression task, in “Replicates” mode: five automatic seeds, R² as the highlighted metric, and a “Run replicates · 5 seeds” button — the multi-seed, confidence-interval mechanic described in the text.'
+detailImageAlt: 'VisionForge multi-seed replicate mode on a regression task with five seeds and bootstrap confidence interval settings.'
 ---
 
-Train, validate and compare models on your own GPU — no cloud, no notebooks, no
-copy-pasted training loops. Five task families behind one interface
-(`classification`, `detection` with YOLO and RT-DETR, `regression`,
-`segmentation` and `anomaly`), `timm` backbones, Optuna-guided sweeps and an
-SDK for custom tasks. Published on PyPI as `visionforge-studio`, with
-hardware-aware setup via `visionforge doctor --fix` (which inspects the NVIDIA
-driver and installs the matching PyTorch wheel, from Turing `sm_75` through
-Blackwell `sm_120` on `cu128`).
+[VisionForge](https://github.com/marcus-vreis/VisionForge) unifies five computer-vision task families behind a single interface and Python SDK (`classification`, `detection` with YOLO and RT-DETR, `regression`, `segmentation`, and `anomaly`), pairing `timm` backbones with Optuna hyperparameter sweeps. The package is published on PyPI as [`visionforge-studio`](https://pypi.org/project/visionforge-studio/) and archived on Zenodo under DOI [`10.5281/zenodo.23425765`](https://doi.org/10.5281/zenodo.23425765). Running `visionforge doctor --fix` inspects the host NVIDIA driver and installs the matching PyTorch wheel across GPU generations (from Turing `sm_75` to Blackwell `sm_120` on `cu128`).
 
-What the project argues is easy to say and rare to find: **the number you report
-has to be a number you can defend**. Every configuration is validated by
-Pydantic v2 before touching GPU time (ADR-002), every run writes a full
-provenance contract to `run.json` (ADR-013, including environment and schema
-version), and every comparison can be replicated across multiple seeds with
-bootstrap confidence intervals. Over 120 ADRs document every architectural
-decision in the repository.
+Every training configuration is validated through Pydantic v2 before allocating GPU memory (ADR-002). Completed runs write full execution provenance, environment versions, and random seeds to `run.json` (ADR-013). Model comparisons execute as multi-seed replicates and report bootstrap confidence intervals rather than single-seed point estimates. Over 120 Architecture Decision Records (ADRs) document the design history of the repository.

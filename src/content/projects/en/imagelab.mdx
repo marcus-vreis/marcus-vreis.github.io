@@ -1,7 +1,7 @@
 ---
 title: ImageLab
 persona: The Scalpel
-tagline: Modular digital image processing workbench across spatial, morphological and frequency domains.
+tagline: Modular desktop application for digital image processing across spatial, morphological, and frequency domains.
 accent: '#E040A0'
 accentLight: '#CA2186'
 order: 5
@@ -12,19 +12,11 @@ character: scanner
 year: '2025'
 stack: ['Python', 'OpenCV', 'scikit-image', 'Fourier / FFT', 'Tkinter']
 repo: 'https://github.com/marcus-vreis/ImageLab'
-links: []
+links:
+  - label: 'GitHub Repository'
+    href: 'https://github.com/marcus-vreis/ImageLab'
 ---
 
-A desktop workbench for hands-on classical Digital Image Processing (SIN 392,
-UFV). Engineered as a pixel-level inspection instrument: the GUI and event loop
-(`main.py`) are strictly separated from the six pure mathematical processing
-modules.
+[ImageLab](https://github.com/marcus-vreis/ImageLab) is a desktop application built for the Digital Image Processing course (SIN 392) at [UFV](https://www.crp.ufv.br/). The codebase isolates GUI layout and event dispatch (`main.py`) from six pure mathematical processing modules.
 
-Each transformation family lives in its own dedicated module:
-`operacoes_histograma.py` (tonal distribution and statistics),
-`transformacoes_intensidade.py` (contrast stretching and histogram
-equalisation), `filtros_espaciais.py` (low-pass smoothing and high-pass
-edge/sharpening convolutions), `dominio_frequencia.py` (spectral analysis and
-filtering via Fast Fourier Transform), `operacoes_morfologicas.py`
-(structuring-element erosion and dilation) and `operacoes_segmentacao.py`
-(global optimal Otsu thresholding).
+Each transformation family lives in its own module. `operacoes_histograma.py` computes tonal distributions and global statistics, while `transformacoes_intensidade.py` implements contrast stretching and histogram equalization. Spatial and frequency filtering reside in `filtros_espaciais.py` (low-pass smoothing and high-pass edge operators) and `dominio_frequencia.py` (2D Fourier spectrum visualization and frequency-domain FFT filtering). `operacoes_morfologicas.py` (erosion and dilation with configurable structuring elements) and `operacoes_segmentacao.py` (global optimal thresholding via Otsu's method) complete the pipeline.

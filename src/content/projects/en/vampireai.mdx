@@ -1,7 +1,7 @@
 ---
 title: VampireAI
-persona: The Short-Sighted Player
-tagline: Autonomous turn-based roguelike agent where classical CV decides geometry and a local VLM decides semantics.
+persona: The Myopic Player
+tagline: Autonomous agent for a turn-based roguelike separating NumPy geometric vision from local VLM semantics.
 accent: '#DA464C'
 accentLight: '#C1272D'
 order: 3
@@ -12,30 +12,15 @@ character: fliperama
 year: '2026'
 stack: ['Qwen2.5-VL 7B', 'OpenCV / NumPy', 'Ollama', 'Pydantic', 'vgamepad']
 repo: 'https://github.com/marcus-vreis/VampireAI'
-links: []
+links:
+  - label: 'GitHub Repository'
+    href: 'https://github.com/marcus-vreis/VampireAI'
 cover: ../../../assets/projects/vampireai.png
-coverAlt: 'A Vampire Crawlers battle screen: pixel-art skeletons and bats across the field, the player’s hand of cards fanned at the bottom, and the health and mana orbs at the sides.'
+coverAlt: 'Battle screen of Vampire Crawlers showing the card hand at the bottom and health and mana orbs on the sides.'
 ---
 
-An agent that plays *Vampire Crawlers* (a turn-based deckbuilder roguelike
-released in April 2026 — zero contamination in any model's training data) using
-100% local inference through Ollama (`Qwen2.5-VL` 7B). The research question
-inverts the usual one: not *"how well can a paid frontier model play"*, but
-*"what is the exact boundary between classical computer vision and a
-vision-language model so that a small open-weight model plays in real time on a
-single GPU"*.
+[VampireAI](https://github.com/marcus-vreis/VampireAI) plays *Vampire Crawlers* (a turn-based deckbuilding roguelike released in April 2026, outside the pretraining cutoff of current models) using local inference through Ollama (`Qwen2.5-VL` 7B). The project studies where to place the boundary between deterministic image processing and a compact vision-language model to keep turn latency practical during live gameplay.
 
-The project's structural rule (ADR-022) is strict: **classical CV decides
-geometry; the VLM decides only semantics**. Before anything reaches the model,
-every pixel-measurable question is answered by pure functions over NumPy arrays
-(`src/vision/`): screen-state classification via colour signatures, card-slot
-and cursor detection in **3.3 ms** (tracking the blue-to-magenta pulse of the
-cost orb), HUD mana and HP extraction in **1.6 ms** via a runtime-learned
-`glyph → digit` codebook (`digits.py`, which queries the model only on the
-first two appearances of each digit), and BFS pathfinding on the minimap with
-template-matched icons merged into the walkable mask.
+The architecture follows ADR-022. Pure NumPy and OpenCV functions (`src/vision/`) resolve screen geometry before any VLM call occurs. The vision module classifies screen state from colour signatures, locates card slots and selection cursors in 3.3 ms (handling the blue-to-magenta mana orb pulse), and reads mana and HP in 1.6 ms via a runtime-learned glyph codebook (`digits.py`, which queries the model only on the first two appearances of each digit). Dungeon traversal runs breadth-first search (BFS) directly on the walkability grid extracted from the minimap.
 
-That split cut a combat turn's budget from `6 + N` VLM calls down to **1–2
-calls per turn** (< 15 s target latency), with Pydantic-validated decisions and
-execution through a virtual DualShock 4 gamepad (`vgamepad` over ViGEm Bus)
-paced by visual cursor-motion confirmation rather than fixed sleeps (ADR-041).
+The VLM receives only novel card crops and the structured combat state. Separating geometry from semantics reduced combat cost from `6 + N` model queries to 1–2 calls per turn, with outputs validated in Pydantic and executed through a virtual DualShock 4 controller (`vgamepad` over ViGEm Bus) synchronized by visual cursor confirmation (ADR-041).

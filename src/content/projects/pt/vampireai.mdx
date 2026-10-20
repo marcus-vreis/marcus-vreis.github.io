@@ -1,7 +1,7 @@
 ---
 title: VampireAI
 persona: O Jogador Míope
-tagline: Agente autônomo para roguelike por turnos onde a visão clássica decide a geometria e o VLM local decide a semântica.
+tagline: Agente autônomo para roguelike por turnos que separa visão geométrica em NumPy e decisão semântica em VLM local.
 accent: '#DA464C'
 accentLight: '#C1272D'
 order: 3
@@ -12,30 +12,15 @@ character: fliperama
 year: '2026'
 stack: ['Qwen2.5-VL 7B', 'OpenCV / NumPy', 'Ollama', 'Pydantic', 'vgamepad']
 repo: 'https://github.com/marcus-vreis/VampireAI'
-links: []
+links:
+  - label: 'Repositório GitHub'
+    href: 'https://github.com/marcus-vreis/VampireAI'
 cover: ../../../assets/projects/vampireai.png
-coverAlt: 'Tela de batalha de Vampire Crawlers: esqueletos e morcegos em pixel art sobre um campo, a mão de cartas do jogador em leque na parte inferior, e os medalhões de vida e mana nas laterais.'
+coverAlt: 'Tela de batalha de Vampire Crawlers com mão de cartas na parte inferior e indicadores de vida e mana nas laterais.'
 ---
 
-Um agente que joga *Vampire Crawlers* (roguelike de deckbuilding por turnos,
-lançado em abril de 2026 — zero contaminação no pré-treino de qualquer modelo)
-usando inferência 100% local via Ollama (`Qwen2.5-VL` 7B). A pergunta de
-pesquisa inverte a usual: não *"quão bem um modelo de fronteira pago joga"*,
-mas *"qual é a divisão exata entre visão clássica e modelo de linguagem para
-que um modelo pequeno de peso aberto jogue em tempo real numa única GPU"*.
+O [VampireAI](https://github.com/marcus-vreis/VampireAI) joga *Vampire Crawlers* (roguelike de construção de baralho por turnos lançado em abril de 2026, fora da janela de pré-treino dos modelos atuais) usando inferência local via Ollama com o modelo `Qwen2.5-VL` 7B. O projeto investiga como dividir a percepção entre rotinas determinísticas de imagem e um modelo visão-linguagem compacto para manter tempo de resposta viável durante a partida.
 
-A regra estruturante do projeto (ADR-022) é estrita: **visão computacional
-clássica decide geometria; o VLM decide apenas semântica**. Antes de enviar
-qualquer frame ao modelo, tudo que é medível em pixels é resolvido em funções
-puras sobre arrays NumPy (`src/vision/`): classificação de estado da tela por
-assinatura de cor, detecção de slots e cursor de cartas em **3,3 ms** (cobrindo
-a pulsação azul-magenta do círculo de custo), leitura de mana e HP em **1,6 ms**
-com um livro `glifo → algarismo` aprendido em runtime (`digits.py`, que usa o
-modelo apenas nas duas primeiras aparições de cada dígito), e navegação por
-BFS no minimapa somando máscaras de ícones à malha andável.
+A arquitetura segue a regra definida no ADR-022. Funções puras em NumPy e OpenCV (`src/vision/`) resolvem toda a geometria da tela antes de qualquer chamada ao VLM. O pipeline identifica o estado da tela por assinatura de cor, localiza os slots e o cursor das cartas em 3,3 ms (compensando a variação de cor do círculo de custo de mana) e lê mana e vida em 1,6 ms por meio de um dicionário de glifos aprendido em tempo de execução (`digits.py`, que consulta o modelo apenas nas duas primeiras aparições de cada algarismo). A navegação em masmorras executa busca em largura (BFS) diretamente sobre a malha extraída do minimapa.
 
-O resultado dessa separação reduziu o custo de um turno de combate de `6 + N`
-chamadas de VLM para **1 a 2 chamadas por turno** (< 15 s de latência alvo),
-com saídas validadas por Pydantic e execução via gamepad virtual DualShock 4
-(`vgamepad` sobre ViGEm Bus), sincronizada pela confirmação visual de movimento
-do cursor em vez de esperas fixas (ADR-041).
+O VLM recebe apenas os recortes das cartas inéditas e o estado já estruturado da partida. Essa divisão reduziu o custo de combate de `6 + N` requisições para 1 a 2 chamadas por turno, com saída validada em Pydantic e comandos enviados por um controle virtual DualShock 4 (`vgamepad` sobre ViGEm Bus) sincronizado pela confirmação visual de movimento do cursor (ADR-041).

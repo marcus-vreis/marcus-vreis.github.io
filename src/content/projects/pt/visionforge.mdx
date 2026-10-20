@@ -1,7 +1,7 @@
 ---
 title: VisionForge
 persona: O Instrumento
-tagline: Plataforma local-first para treinar, comparar e defender modelos de visão computacional na própria GPU.
+tagline: Plataforma local para treino, validação multi-seed e rastreamento de proveniência em visão computacional.
 accent: '#6EE7A8'
 accentLight: '#157C46'
 order: 1
@@ -18,24 +18,11 @@ links:
   - label: 'DOI (Zenodo)'
     href: 'https://doi.org/10.5281/zenodo.23425765'
 cover: ../../../assets/projects/visionforge.png
-coverAlt: 'Painel de classificação do VisionForge: nome do experimento, seletor de estratégia (treino simples, k-fold, transfer learning, busca em grade ou aleatória), arquitetura resnet50, campos de épocas, taxa de aprendizado e tamanho de lote, e o botão “Treinar”. Interface escura com acentos vermelhos.'
+coverAlt: 'Painel de classificação do VisionForge com seletor de estratégia de treino, arquitetura resnet50, campos de hiperparâmetros e botão de execução.'
 detailImage: ../../../assets/projects/visionforge-replicates.png
-detailImageAlt: 'A mesma plataforma na tarefa de regressão, no modo “Réplicas”: cinco seeds automáticas, métrica de destaque R² e o botão “Rodar réplicas · 5 seeds” — a mecânica de réplica multi-seed com intervalo de confiança descrita no texto.'
+detailImageAlt: 'Modo de réplicas multi-seed do VisionForge na tarefa de regressão com cinco seeds e cálculo de intervalo de confiança.'
 ---
 
-Treinar, validar e comparar modelos na própria GPU — sem nuvem, sem notebook,
-sem laço de treino copiado. Cinco famílias de tarefa atrás da mesma interface
-(`classification`, `detection` com YOLO e RT-DETR, `regression`, `segmentation`
-e `anomaly`), backbones `timm`, varreduras guiadas por Optuna e um SDK para
-tarefas próprias. Publicado no PyPI como `visionforge-studio`, com instalação
-de hardware assistida por `visionforge doctor --fix` (que inspeciona o driver
-NVIDIA e instala a wheel exata do PyTorch, de Turing `sm_75` a Blackwell
-`sm_120` com `cu128`).
+O [VisionForge](https://github.com/marcus-vreis/VisionForge) concentra cinco famílias de tarefa na mesma interface e no mesmo SDK (`classification`, `detection` com YOLO e RT-DETR, `regression`, `segmentation` e `anomaly`), combinando backbones `timm` e busca de hiperparâmetros via Optuna. O pacote é distribuído no PyPI como [`visionforge-studio`](https://pypi.org/project/visionforge-studio/) e arquivado no Zenodo sob o DOI [`10.5281/zenodo.23425765`](https://doi.org/10.5281/zenodo.23425765). O comando `visionforge doctor --fix` inspeciona o driver NVIDIA instalado e resolve a wheel exata do PyTorch (de arquiteturas Turing `sm_75` a Blackwell `sm_120` com `cu128`).
 
-O que o projeto defende é simples de dizer e raro de encontrar: **o número que
-você reporta precisa ser um número que você consegue defender**. Toda configuração
-é validada em Pydantic v2 antes de alocar tempo de GPU (ADR-002), toda execução
-grava o contrato completo de proveniência em `run.json` (ADR-013, incluindo
-ambiente e versão de schema), e qualquer comparação pode ser executada em modo
-de réplicas multi-seed com intervalo de confiança por bootstrap. Mais de 120
-ADRs documentam cada decisão arquitetural do repositório.
+Toda configuração passa por validação em Pydantic v2 antes de alocar tempo de GPU (ADR-002). Ao final do treino, o sistema grava o estado do ambiente, a semente aleatória e a versão do schema em `run.json` (ADR-013). Comparações entre modelos rodam em modo de réplicas multi-seed e reportam intervalos de confiança por bootstrap em vez de execuções isoladas. O repositório mantém mais de 120 Architecture Decision Records (ADRs) com o histórico das decisões de projeto.

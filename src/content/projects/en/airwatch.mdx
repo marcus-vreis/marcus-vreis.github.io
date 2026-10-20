@@ -1,7 +1,7 @@
 ---
 title: AirWatch
 persona: The Network
-tagline: Distributed air-quality telemetry with RabbitMQ queues, idempotent aggregation and live streaming.
+tagline: Distributed air-quality telemetry with dual RabbitMQ queues, idempotent aggregation, and WebSocket streaming.
 accent: '#4EC9E0'
 accentLight: '#187687'
 order: 4
@@ -12,21 +12,13 @@ character: estacao
 year: '2026'
 stack: ['TypeScript', 'RabbitMQ', 'Docker Compose', 'WebSocket', 'REST']
 repo: 'https://github.com/marcus-vreis/AirWatch'
-links: []
+links:
+  - label: 'GitHub Repository'
+    href: 'https://github.com/marcus-vreis/AirWatch'
 ---
 
-A distributed system for collecting, aggregating and visualising air-quality
-telemetry across multiple collector nodes, built for the Distributed Systems
-course (SIN 142, UFV — Prof. Dr. Pedro Damaso).
+[AirWatch](https://github.com/marcus-vreis/AirWatch) collects, aggregates, and streams air-quality readings from multiple collector nodes. The system was built in TypeScript for the Distributed Systems course (SIN 142) at the [Federal University of Viçosa (UFV)](https://www.crp.ufv.br/), taught by Prof. Dr. Pedro Damaso.
 
-The architecture decouples collection from ingestion through **two RabbitMQ
-queues**: the central node dispatches collection requests on the first queue;
-worker nodes poll the external source, batch the readings into a single payload
-and publish it onto the second queue tagged with a unique idempotency token.
-The central core ingests batches with duplicate tolerance and persists the
-consolidated state.
+Two RabbitMQ queues decouple collection from central aggregation. The coordinator publishes polling jobs to the first queue; collector nodes query external sensors, batch the readings, and publish the payload to the second queue with a batch idempotency token. The core service deduplicates redelivered batches and updates the consolidated state.
 
-Downstream, processed aggregates stream live over **WebSocket** and remain
-queryable over a **REST API**, feeding a multi-group sensor dashboard. The
-entire cluster (collectors, RabbitMQ broker, core and frontend) boots
-reproducibly under `docker-compose`.
+Processed aggregates stream live over WebSockets and remain queryable through a REST API. The entire topology (collectors, RabbitMQ broker, aggregation core, and web dashboard) runs via `docker-compose`.

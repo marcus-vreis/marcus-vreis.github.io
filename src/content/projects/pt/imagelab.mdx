@@ -1,7 +1,7 @@
 ---
 title: ImageLab
 persona: O Bisturi
-tagline: Bancada modular de processamento digital de imagens nos domínios espacial, morfológico e de frequência.
+tagline: Aplicação modular de processamento digital de imagens nos domínios espacial, morfológico e de frequência.
 accent: '#E040A0'
 accentLight: '#CA2186'
 order: 5
@@ -12,19 +12,11 @@ character: scanner
 year: '2025'
 stack: ['Python', 'OpenCV', 'scikit-image', 'Fourier / FFT', 'Tkinter']
 repo: 'https://github.com/marcus-vreis/ImageLab'
-links: []
+links:
+  - label: 'Repositório GitHub'
+    href: 'https://github.com/marcus-vreis/ImageLab'
 ---
 
-Aplicação de desktop para experimentação direta em Processamento Digital de
-Imagens clássico (SIN 392, UFV). Projetada como instrumento de inspeção pixel a
-pixel: a camada de interface e eventos (`main.py`) é estritamente isolada dos
-seis módulos matemáticos de operação.
+O [ImageLab](https://github.com/marcus-vreis/ImageLab) é uma aplicação desktop desenvolvida para a disciplina de Processamento Digital de Imagens (SIN 392) na [UFV](https://www.crp.ufv.br/). O código separa a camada de interface gráfica e despacho de eventos (`main.py`) de seis módulos matemáticos independentes.
 
-Cada família de transformação reside em um módulo puro dedicado:
-`operacoes_histograma.py` (distribuição tonal e estatísticas),
-`transformacoes_intensidade.py` (alargamento de contraste e equalização de
-histograma), `filtros_espaciais.py` (convoluções passa-baixa de suavização e
-passa-alta de aguçamento/bordas), `dominio_frequencia.py` (espectro e filtragem
-via Transformada Rápida de Fourier), `operacoes_morfologicas.py` (erosão e
-dilatação com elemento estruturante) e `operacoes_segmentacao.py`
-(limiarização ótima global de Otsu).
+Cada família de transformação ocupa um arquivo dedicado. O módulo `operacoes_histograma.py` calcula distribuição tonal e estatísticas globais, enquanto `transformacoes_intensidade.py` implementa alargamento de contraste e equalização. A filtragem linear e não linear reside em `filtros_espaciais.py` (suavização passa-baixa e operadores passa-alta de borda) e `dominio_frequencia.py` (espectro de Fourier 2D e filtragem no domínio da frequência via FFT). Fecham o conjunto `operacoes_morfologicas.py` (erosão e dilatação com elemento estruturante configurável) e `operacoes_segmentacao.py` (limiarização global ótima pelo método de Otsu).

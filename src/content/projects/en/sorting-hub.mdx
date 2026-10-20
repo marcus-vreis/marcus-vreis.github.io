@@ -1,7 +1,7 @@
 ---
 title: Sorting-Algorithms-Hub
 persona: The Metronome
-tagline: C++ implementation and empirical benchmark suite of sorting algorithms from N = 10 to 10⁶.
+tagline: C++ implementation and empirical benchmark of sorting algorithms from N = 10 to 10⁶.
 accent: '#9A9791'
 accentLight: '#706D67'
 order: 8
@@ -12,17 +12,11 @@ character: esteira
 year: '2024'
 stack: ['C++', 'QuickSort (4 pivots)', 'MergeSort', 'HeapSort', 'Asymptotic Analysis']
 repo: 'https://github.com/marcus-vreis/Sorting-Algorithms-Hub'
-links: []
+links:
+  - label: 'GitHub Repository'
+    href: 'https://github.com/marcus-vreis/Sorting-Algorithms-Hub'
 ---
 
-An empirical sorting benchmark suite written in pure C++ (`Algoritmos.h`,
-`heap_func.h`), covering `Insertion_Sort`, `Selection_Sort`, `Merge_Sort`,
-`Heap_Sort` and four `Quick_Sort` partitioning strategies (standard pivot,
-mean, median-of-three and randomised pivot).
+Empirical sorting benchmark written in C++ (`Algoritmos.h` and `heap_func.h`) in [`Sorting-Algorithms-Hub`](https://github.com/marcus-vreis/Sorting-Algorithms-Hub). The repository implements `Insertion_Sort`, `Selection_Sort`, `Merge_Sort`, `Heap_Sort`, and four pivot-selection strategies for `Quick_Sort` (first element, mean, median-of-three, and random pivot).
 
-Beyond implementing each algorithm from scratch, the repository measures and
-records wall-clock execution times across three input distributions
-(**ascending**, **descending** and **random**) spanning six orders of magnitude
-($N = 10, 10^2, 10^3, 10^4, 10^5, 10^6$), exposing where quadratic $O(N^2)$
-degradation surfaces in practice and how median-of-three and randomised pivots
-preserve the $O(N \log N)$ regime.
+The benchmark records CPU execution times across three input distributions (ascending, descending, and random) over six orders of magnitude ($N = 10, 10^2, 10^3, 10^4, 10^5, 10^6$). The resulting curves measure the transition to quadratic $O(N^2)$ runtime when fixed pivots encounter pre-sorted arrays and verify $O(N \log N)$ stability under median-of-three and randomized pivoting.

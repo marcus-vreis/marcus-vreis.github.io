@@ -1,6 +1,6 @@
 ---
-import { Image } from 'astro:assets';
-import portrait from '../assets/portrait.jpg';
+import ContactIcon from './ContactIcon.astro';
+import InlineText from './InlineText.astro';
 import Schematic from './Schematic.astro';
 import type { Locale } from '../lib/i18n';
 import { UI, type CharacterId } from '../lib/ui-strings';
@@ -89,10 +89,31 @@ const t = UI[locale];
             <span class="pub-year">{pub.year}</span>
             <span class="pub-badge">{pub.badge}</span>
           </div>
-          <h4 class="pub-title">{pub.title}</h4>
+          <h4 class="pub-title">
+            <a
+              class="pub-title-link"
+              href={pub.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {pub.title} <span class="ext-arrow" aria-hidden="true">↗</span>
+            </a>
+          </h4>
           <p class="pub-authors tabular">{pub.authors}</p>
           <p class="pub-venue">{pub.venue}</p>
-          <p class="pub-note">{pub.note}</p>
+          <p class="pub-note">
+            <InlineText text={pub.note} />
+          </p>
+          <div class="pub-footer tabular">
+            <a
+              class="doi-link"
+              href={pub.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t.doiLabel}: {pub.doi} ↗
+            </a>
+          </div>
         </li>
       ))}
     </ol>
@@ -101,7 +122,9 @@ const t = UI[locale];
   <div class="block">
     <div class="block-header">
       <h2 id="sobre-title">{t.aboutHeading}</h2>
-      <p class="block-subtitle">{t.aboutSubtitle}</p>
+      <p class="block-subtitle">
+        <InlineText text={t.aboutSubtitle} />
+      </p>
     </div>
 
     <div class="indicators-block" aria-label={t.indicatorsHeading}>
@@ -124,33 +147,39 @@ const t = UI[locale];
         </div>
 
         <div class="prose">
-          {t.aboutBody.map((paragraph) => <p>{paragraph}</p>)}
+          {t.aboutBody.map((paragraph) => (
+            <p>
+              <InlineText text={paragraph} />
+            </p>
+          ))}
         </div>
       </div>
 
       <div class="about-col">
         <div class="dossier-card">
           <div class="dossier-header">
-            <div class="dossier-photo">
-              <Image
-                src={portrait}
-                alt={t.authorPhotoAlt}
-                width={140}
-                height={140}
-                class="dossier-img"
-              />
-            </div>
-            <div class="dossier-title-wrap">
-              <h3 class="dossier-heading">{t.profileCardHeading}</h3>
-              <p class="dossier-citation tabular">{t.citationShort}</p>
-            </div>
+            <h3 class="dossier-heading">{t.profileCardHeading}</h3>
+            <span class="dossier-citation tabular">{t.citationShort}</span>
           </div>
 
           <dl class="bio-list">
             {t.bioFields.map((field) => (
               <div class="bio-row">
                 <dt class="tabular">{field.label}</dt>
-                <dd>{field.value}</dd>
+                <dd>
+                  {field.href ? (
+                    <a
+                      class="bio-link"
+                      href={field.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {field.value} ↗
+                    </a>
+                  ) : (
+                    field.value
+                  )}
+                </dd>
               </div>
             ))}
           </dl>
@@ -170,7 +199,9 @@ const t = UI[locale];
               </div>
               <p class="timeline-role">{item.role}</p>
               <p class="timeline-org tabular">{item.org}</p>
-              <p class="timeline-detail">{item.detail}</p>
+              <p class="timeline-detail">
+                <InlineText text={item.detail} />
+              </p>
             </li>
           ))}
         </ol>
@@ -186,8 +217,23 @@ const t = UI[locale];
                 <span class="timeline-regime">{item.regime}</span>
               </div>
               <p class="timeline-role">{item.role}</p>
-              <p class="timeline-org tabular">{item.org}</p>
-              <p class="timeline-detail">{item.detail}</p>
+              <p class="timeline-org tabular">
+                {item.orgHref ? (
+                  <a
+                    class="bio-link"
+                    href={item.orgHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {item.org} ↗
+                  </a>
+                ) : (
+                  item.org
+                )}
+              </p>
+              <p class="timeline-detail">
+                <InlineText text={item.detail} />
+              </p>
             </li>
           ))}
         </ol>
@@ -204,10 +250,25 @@ const t = UI[locale];
               <span class="pub-badge">{proj.kind}</span>
             </div>
             <p class="proj-code tabular">{proj.code}</p>
-            <h4 class="pub-title">{proj.title}</h4>
+            <h4 class="pub-title">
+              {proj.href ? (
+                <a
+                  class="pub-title-link"
+                  href={proj.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {proj.title} <span class="ext-arrow" aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                proj.title
+              )}
+            </h4>
             <p class="pub-authors tabular">{proj.org}</p>
             <p class="pub-venue">{proj.advisor}</p>
-            <p class="pub-note">{proj.detail}</p>
+            <p class="pub-note">
+              <InlineText text={proj.detail} />
+            </p>
           </li>
         ))}
       </ol>
@@ -221,7 +282,20 @@ const t = UI[locale];
             <li class="award-item">
               <span class="award-year tabular">{award.year}</span>
               <div class="award-copy">
-                <span class="award-title">{award.title}</span>
+                <span class="award-title">
+                  {award.href ? (
+                    <a
+                      class="bio-link"
+                      href={award.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {award.title} ↗
+                    </a>
+                  ) : (
+                    award.title
+                  )}
+                </span>
                 <span class="award-venue">{award.venue}</span>
               </div>
             </li>
@@ -251,7 +325,20 @@ const t = UI[locale];
                 <span class="timeline-period">{ev.year}</span>
                 <span class="timeline-regime">{ev.kind}</span>
               </div>
-              <p class="event-work">{ev.work}</p>
+              <p class="event-work">
+                {ev.href ? (
+                  <a
+                    class="bio-link"
+                    href={ev.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {ev.work} ↗
+                  </a>
+                ) : (
+                  ev.work
+                )}
+              </p>
               <p class="event-venue">{ev.event}</p>
             </li>
           ))}
@@ -281,8 +368,16 @@ const t = UI[locale];
         <ul class="contact-cards tabular">
           {t.contact.map((c) => (
             <li>
-              <a class="contact-card" href={c.href}>
-                <span class="contact-label">{c.label} ↗</span>
+              <a
+                class="contact-card"
+                href={c.href}
+                target={c.href.startsWith('mailto:') ? undefined : '_blank'}
+                rel={c.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+              >
+                <div class="contact-top">
+                  <ContactIcon name={c.icon} />
+                  <span class="contact-label">{c.label} ↗</span>
+                </div>
                 <span class="contact-value">{c.value}</span>
               </a>
             </li>
@@ -512,6 +607,25 @@ const t = UI[locale];
     color: var(--fg);
   }
 
+  .pub-title-link {
+    color: var(--fg);
+    text-decoration: none;
+    transition: color 140ms ease;
+  }
+
+  .pub-title-link:hover,
+  .pub-title-link:focus-visible {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.18em;
+  }
+
+  .ext-arrow {
+    font-size: 0.9rem;
+    color: var(--accent);
+  }
+
   .pub-authors {
     font-size: 0.75rem;
     color: var(--fg);
@@ -529,6 +643,28 @@ const t = UI[locale];
     line-height: 1.5;
     padding-top: 0.45rem;
     border-top: 1px dashed var(--rule);
+  }
+
+  .pub-footer {
+    margin-top: auto;
+    padding-top: 0.35rem;
+    font-size: 0.6875rem;
+  }
+
+  .doi-link {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--fg) 3%, var(--bg));
+    color: var(--fg);
+    text-decoration: none;
+    transition: border-color 140ms ease, color 140ms ease;
+  }
+
+  .doi-link:hover,
+  .doi-link:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   .indicators-grid {
@@ -627,33 +763,12 @@ const t = UI[locale];
 
   .dossier-header {
     display: flex;
-    align-items: center;
+    justify-content: space-between;
+    align-items: baseline;
     gap: 1rem;
-    padding: 1rem 1.15rem;
+    padding: 0.85rem 1.15rem;
     border-bottom: 1px solid var(--rule);
     background: color-mix(in srgb, var(--fg) 3.5%, var(--bg));
-  }
-
-  .dossier-photo {
-    width: 4.25rem;
-    height: 4.25rem;
-    flex-shrink: 0;
-    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--rule));
-    padding: 0.12rem;
-    background: var(--bg);
-  }
-
-  .dossier-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .dossier-title-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
   }
 
   .dossier-heading {
@@ -697,6 +812,19 @@ const t = UI[locale];
     font-size: 0.8125rem;
     color: var(--fg);
     line-height: 1.45;
+  }
+
+  .bio-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent) 70%, var(--rule));
+    text-underline-offset: 0.2em;
+    transition: color 140ms ease;
+  }
+
+  .bio-link:hover,
+  .bio-link:focus-visible {
+    color: var(--accent);
   }
 
   .timeline,
@@ -852,8 +980,8 @@ const t = UI[locale];
   .contact-card {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.7rem 0.85rem;
+    gap: 0.3rem;
+    padding: 0.75rem 0.9rem;
     border: 1px solid var(--rule);
     background: color-mix(in srgb, var(--fg) 2.5%, var(--bg));
     text-decoration: none;
@@ -865,14 +993,20 @@ const t = UI[locale];
     border-color: var(--accent);
   }
 
-  .contact-card:hover .contact-label,
-  .contact-card:focus-visible .contact-label {
+  .contact-top {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--fg);
+  }
+
+  .contact-card:hover .contact-top,
+  .contact-card:focus-visible .contact-top {
     color: var(--accent);
   }
 
   .contact-label {
     font-size: 0.75rem;
-    color: var(--fg);
     font-weight: 600;
   }
 

@@ -1,7 +1,7 @@
 ---
 title: Detectores de Vocabulário Aberto sob Desvio de Domínio
 persona: O Nevoeiro
-tagline: Quando e por que âncoras externas ajudam a pseudo-rotulagem sob deslocamento de domínio — filtragem vs. completação.
+tagline: Avaliação empírica de filtragem e completação de pseudo-rótulos sob deslocamento de domínio em detecção de objetos.
 accent: '#8FA6B8'
 accentLight: '#547085'
 order: 9
@@ -9,31 +9,15 @@ kind: pesquisa
 character: nevoeiro
 year: '2026—2028'
 stack: ['Grounding DINO', 'Faster R-CNN / RetinaNet', 'CLIP / SigLIP / DINOv2', 'COCO-C', 'Foggy Cityscapes', 'BDD100K']
-links: []
+links:
+  - label: 'PPGCC / UFSCar'
+    href: 'https://www.ppgcc.dc.ufscar.br/'
+  - label: 'Google Scholar'
+    href: 'https://scholar.google.com/citations?user=5jCt_wYAAAAJ'
 ---
 
-Pesquisa de mestrado em Ciência da Computação na **UFSCar** (orientação do Prof.
-Dr. Jurandy Gomes de Almeida Junior). Investiga o comportamento de detectores
-de objetos e esquemas de autotreinamento professor-aluno quando as imagens de
-operação sofrem deslocamento severo de domínio — corrupções paramétricas
-(**COCO-C**), neblina densa (**Foggy Cityscapes**, $\beta \in \{0,005; 0,01;
-0,02\}$) e transição dia $\to$ noite (**BDD100K**).
+Pesquisa de mestrado em Ciência da Computação no [PPGCC da UFSCar](https://www.ppgcc.dc.ufscar.br/), sob orientação do [Prof. Dr. Jurandy Gomes de Almeida Junior](https://scholar.google.com/citations?user=a4L1sbcAAAAJ). O trabalho avalia detectores de objetos e pipelines de autotreinamento professor-aluno quando as imagens de teste sofrem deslocamento de domínio, cobrindo corrupções sintéticas paramétricas (COCO-C), neblina densa (Foggy Cityscapes, $\beta \in \{0,005; 0,01; 0,02\}$) e transição dia para noite (BDD100K).
 
-O estudo nasceu de um resultado negativo medido com rigor: usar classificadores
-visão-linguagem de recorte (**CLIP**, **SigLIP**) ou representações densas
-(**DINOv2 k-NN**) como filtro semântico para limpar os pseudo-rótulos de um
-professor (Faster R-CNN / RetinaNet) **piora o ranqueamento AUPRC em 100% das
-condições testadas** (Achado A1). A análise de teto revelou as duas causas
-estruturais: o escore de um recorte isolado perde o contexto de localização que
-o detector já possuía, e sob desvio forte o modo primário de falha do professor
-não é o excesso de falsos positivos — é o **colapso de recall** (Achado A3).
-Onde mais se tenta filtrar, menos objetos restam para filtrar.
+Os experimentos partiram da avaliação de classificadores visão-linguagem de recorte (CLIP e SigLIP) e representações densas (DINOv2 k-NN) como filtros semânticos sobre pseudo-rótulos gerados por um detector professor (Faster R-CNN e RetinaNet). Filtrar recortes reduziu o AUPRC em 100% das condições testadas (Achado A1). A análise de teto identificou dois fatores para essa queda. O escore de um recorte isolado descarta o contexto espacial que o detector já utilizou, e sob desvio severo a falha dominante do professor é o colapso de recall, não o excesso de falsos positivos (Achado A3).
 
-A saída empírica e acionável está na direção oposta: **completação de
-pseudo-rótulos** com um detector de vocabulário aberto congelado (**Grounding
-DINO**), que é complementar ao professor sob mudança de domínio (Achado A2). Em
-vez de podar caixas do professor, recuperar os objetos que ele deixou de ver
-eleva o recall em **+0,077** e o F1 dos pseudo-rótulos em **+0,023**,
-sustentando o ciclo de autotreinamento em uma única GPU de consumo (RTX 5060 Ti
-16 GB). Inclui também reproduções independentes de métodos recentes da
-literatura (**TTAOD-F**, NeurIPS 2025; **CCKM**, IEEE TIP 2026).
+Com o recall comprimido, descartar caixas candidatas degrada ainda mais a supervisão do aluno. A alternativa testada no estudo é a completação de pseudo-rótulos com um detector de vocabulário aberto congelado (Grounding DINO), cujas predições mostram baixa sobreposição de erro com o professor sob mudança de domínio (Achado A2). A união controlada das detecções recupera objetos omitidos pelo professor e eleva o recall em +0,077 e o F1 dos pseudo-rótulos em +0,023. O repositório da pesquisa também mantém reproduções independentes dos métodos TTAOD-F (NeurIPS 2025) e CCKM (IEEE TIP 2026).
