@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: refresh-github
@@ -18,39 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Sem o segredo, a coleta é pulada com um aviso em vez de falhar: falhar
-      # todo dia só geraria um e-mail por dia até o segredo existir.
-      - name: Confere o segredo
-        id: secret
-        env:
-          TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN }}
-        run: |
-          if [ -z "$TOKEN" ]; then
-            echo "::warning::PORTFOLIO_GITHUB_TOKEN não configurado — coleta pulada."
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.secret.outputs.ok == 'true'
       - uses: actions/setup-node@v4
-        if: steps.secret.outputs.ok == 'true'
         with:
           node-version: '22'
 
       # O script só usa módulos do próprio Node e arquivos .ts locais:
       # não precisa de npm ci.
       - run: node --experimental-strip-types scripts/refresh-github.ts
-        if: steps.secret.outputs.ok == 'true'
         env:
-          # Token pessoal com leitura de conteúdo e metadados nos repositórios
-          # do portfólio — o GITHUB_TOKEN do Action não enxerga os privados.
-          GITHUB_TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Commita se mudou
         id: commit
-        if: steps.secret.outputs.ok == 'true'
         run: |
           if git diff --quiet -- src/data/github-snapshot.json; then
             echo "Instantâneo inalterado."
@@ -64,17 +45,9 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # O deploy não pode depender do push: no plano Hobby da Vercel, commit
-      # de bot num repositório privado não dispara deploy. O deploy hook
-      # dispara independentemente do autor do commit.
-      - name: Dispara o deploy
+      - name: Dispara deploy do GitHub Pages
         if: steps.commit.outputs.changed == 'true'
         env:
-          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+          GH_TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
-            echo "::notice::VERCEL_DEPLOY_HOOK não configurado — deploy não disparado."
-          else
-            curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" > /dev/null
-            echo "Deploy disparado."
-          fi
+          gh workflow run deploy.yml --ref master
