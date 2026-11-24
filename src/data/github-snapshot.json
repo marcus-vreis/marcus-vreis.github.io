@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-23T00:00:00Z",
+  "generatedAt": "2026-11-24T00:00:00Z",
   "repos": {
     "marcus-vreis/AirWatch": {
       "repo": "marcus-vreis/AirWatch",
@@ -45,15 +45,15 @@
     },
     "marcus-vreis/VisionForge": {
       "repo": "marcus-vreis/VisionForge",
-      "lastCommitAt": "2026-11-23T13:37:11Z",
-      "commits90d": 719,
-      "latestTag": "v0.22.3",
+      "lastCommitAt": "2026-11-24T16:00:25Z",
+      "commits90d": 847,
+      "latestTag": "v0.23.0",
       "stars": 1
     },
     "marcus-vreis/custody-watch": {
       "repo": "marcus-vreis/custody-watch",
       "lastCommitAt": "2026-11-15T23:32:29Z",
-      "commits90d": 116,
+      "commits90d": 104,
       "latestTag": null,
       "stars": 0
     }
